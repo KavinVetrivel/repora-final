@@ -55,24 +55,32 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
 
-      // Fetch all data in parallel
-      const [bookingsResponse, issuesResponse, announcementsResponse, usersResponse] = await Promise.all([
+      // Fetch all data in parallel - get both approved and pending users separately
+      const [
+        bookingsResponse, 
+        issuesResponse, 
+        announcementsResponse, 
+        approvedUsersResponse,
+        pendingUsersResponse
+      ] = await Promise.all([
         bookingAPI.getAll({ page: 1, limit: 50, sortBy: 'createdAt', sortOrder: 'desc' }),
         issueAPI.getAll({ page: 1, limit: 50, sortBy: 'createdAt', sortOrder: 'desc' }),
         announcementAPI.getAllForAdmin({ page: 1, limit: 10, sortBy: 'createdAt', sortOrder: 'desc' }),
-        usersAPI.list({ page: 1, limit: 20, sortBy: 'createdAt', sortOrder: 'desc' })
+        usersAPI.list({ page: 1, limit: 50, sortBy: 'createdAt', sortOrder: 'desc' }), // This gets approved users
+        usersAPI.getPendingApproval({ page: 1, limit: 50, sortBy: 'createdAt', sortOrder: 'desc' }) // This gets pending users
       ]);
 
       const bookings = bookingsResponse.data.data.bookings || [];
       const issues = issuesResponse.data.data.issues || [];
       const announcements = announcementsResponse.data.data.announcements || [];
-      const users = usersResponse.data.data.users || [];
+      const approvedUsers = approvedUsersResponse.data.data.users || [];
+      const pendingUsers = pendingUsersResponse.data.data.users || [];
 
-      // Calculate comprehensive stats
+      // Calculate comprehensive stats using correct data
       const stats = {
-        totalUsers: users.length,
-        pendingUsers: users.filter(u => !u.isApproved).length,
-        approvedUsers: users.filter(u => u.isApproved).length,
+        totalUsers: approvedUsers.length + pendingUsers.length,
+        pendingUsers: pendingUsers.length,
+        approvedUsers: approvedUsers.length,
         totalBookings: bookings.length,
         pendingBookings: bookings.filter(b => b.status === 'pending').length,
         approvedBookings: bookings.filter(b => b.status === 'approved').length,
@@ -90,7 +98,7 @@ const AdminDashboard = () => {
         recentBookings: bookings.slice(0, 5),
         recentIssues: issues.slice(0, 5),
         recentAnnouncements: announcements.slice(0, 3),
-        recentUsers: users.slice(0, 5)
+        recentUsers: [...approvedUsers.slice(0, 3), ...pendingUsers.slice(0, 2)].slice(0, 5) // Mix of approved and pending users for recent activity
       });
 
     } catch (error) {
@@ -140,8 +148,8 @@ const AdminDashboard = () => {
       {
         title: 'Total Users',
         value: dashboardData.stats.totalUsers.toString(),
-        change: `${dashboardData.stats.pendingUsers} pending approval`,
-        changeType: dashboardData.stats.pendingUsers > 0 ? 'attention' : 'neutral',
+        change: dashboardData.stats.pendingUsers > 0 ? `${dashboardData.stats.pendingUsers} pending approval` : 'All users approved',
+        changeType: dashboardData.stats.pendingUsers > 0 ? 'attention' : 'positive',
         icon: Users,
         color: 'primary',
         onClick: () => navigate('/admin/manage-users')
@@ -149,7 +157,7 @@ const AdminDashboard = () => {
       {
         title: 'Bookings',
         value: dashboardData.stats.totalBookings.toString(),
-        change: `${dashboardData.stats.pendingBookings} pending`,
+        change: dashboardData.stats.pendingBookings > 0 ? `${dashboardData.stats.pendingBookings} pending` : 'No pending bookings',
         changeType: dashboardData.stats.pendingBookings > 0 ? 'attention' : 'positive',
         icon: Calendar,
         color: 'blue',
@@ -158,7 +166,7 @@ const AdminDashboard = () => {
       {
         title: 'Issues',
         value: dashboardData.stats.totalIssues.toString(),
-        change: `${dashboardData.stats.pendingIssues + dashboardData.stats.openIssues} need attention`,
+        change: (dashboardData.stats.pendingIssues + dashboardData.stats.openIssues) > 0 ? `${dashboardData.stats.pendingIssues + dashboardData.stats.openIssues} need attention` : 'No issues need attention',
         changeType: (dashboardData.stats.pendingIssues + dashboardData.stats.openIssues) > 0 ? 'attention' : 'positive',
         icon: AlertTriangle,
         color: 'orange',
@@ -167,7 +175,7 @@ const AdminDashboard = () => {
       {
         title: 'Announcements',
         value: dashboardData.stats.totalAnnouncements.toString(),
-        change: `${dashboardData.stats.pinnedAnnouncements} pinned`,
+        change: dashboardData.stats.pinnedAnnouncements > 0 ? `${dashboardData.stats.pinnedAnnouncements} pinned` : 'No pinned announcements',
         changeType: 'positive',
         icon: Megaphone,
         color: 'green',
@@ -367,9 +375,9 @@ const AdminDashboard = () => {
                 <AlertTriangle className="w-4 h-4 mr-2" />
                 Manage Issues
               </div>
-              {dashboardData && dashboardData.stats.pendingIssues > 0 && (
+              {dashboardData && (dashboardData.stats.pendingIssues + dashboardData.stats.openIssues) > 0 && (
                 <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                  {dashboardData.stats.pendingIssues}
+                  {dashboardData.stats.pendingIssues + dashboardData.stats.openIssues}
                 </span>
               )}
             </button>
