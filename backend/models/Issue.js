@@ -36,6 +36,41 @@ const issueSchema = new mongoose.Schema({
     enum: ['academic', 'infrastructure', 'hostel', 'canteen', 'transport', 'other'],
     default: 'other'
   },
+  room: {
+    id: {
+      type: String,
+      required: [true, 'Room ID is required']
+    },
+    name: {
+      type: String,
+      required: [true, 'Room name is required']
+    },
+    description: {
+      type: String
+    }
+  },
+  affectedComponents: [{
+    id: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String,
+      required: true
+    },
+    category: {
+      type: String,
+      required: true
+    },
+    count: {
+      type: Number,
+      required: true
+    },
+    specificItems: [{
+      identifier: String, // e.g., "Computer #15", "Fan #3"
+      description: String  // Additional details about the specific item
+    }]
+  }],
   priority: {
     type: String,
     enum: ['low', 'medium', 'high', 'urgent'],

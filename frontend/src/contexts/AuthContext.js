@@ -50,6 +50,13 @@ const authReducer = (state, action) => {
         loading: action.payload
       };
     
+    case 'SET_INITIAL_LOAD_COMPLETE':
+      return {
+        ...state,
+        initialLoad: false,
+        loading: false
+      };
+    
     case 'UPDATE_USER':
       return {
         ...state,
@@ -73,19 +80,25 @@ const initialState = {
   token: null,
   isAuthenticated: false,
   loading: true,
-  error: null
+  error: null,
+  initialLoad: true
 };
 
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Check for existing token on app load
+  // Check for existing token on app load with minimum loading time
   useEffect(() => {
     const validateStoredToken = async () => {
+      const startTime = Date.now();
+      const minLoadingTime = 5000; // 5 seconds minimum loading time
+      
       const token = localStorage.getItem('token');
       const user = localStorage.getItem('user');
       
       console.log('🔍 Checking stored auth:', { hasToken: !!token, hasUser: !!user });
+      
+      let authResult;
       
       if (token && user) {
         try {
@@ -97,7 +110,7 @@ export const AuthProvider = ({ children }) => {
           const response = await api.get('/auth/me');
           
           console.log('✅ Token valid, user authenticated');
-          dispatch({
+          authResult = () => dispatch({
             type: 'LOGIN_SUCCESS',
             payload: {
               user: response.data.data.user,
@@ -109,14 +122,21 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           delete api.defaults.headers.common['Authorization'];
-          dispatch({ type: 'LOGOUT' });
-        } finally {
-          dispatch({ type: 'SET_LOADING', payload: false });
+          authResult = () => dispatch({ type: 'LOGOUT' });
         }
       } else {
         console.log('🚫 No stored credentials found');
-        dispatch({ type: 'LOGOUT' });
+        authResult = () => dispatch({ type: 'LOGOUT' });
       }
+      
+      // Ensure minimum loading time
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+      
+      setTimeout(() => {
+        authResult();
+        dispatch({ type: 'SET_INITIAL_LOAD_COMPLETE' });
+      }, remainingTime);
     };
     
     validateStoredToken();

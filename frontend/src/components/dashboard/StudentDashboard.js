@@ -14,10 +14,12 @@ import {
 import { bookingAPI, issueAPI, announcementAPI } from '../../utils/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { theme } = useTheme();
   
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState({
@@ -191,28 +193,64 @@ const StudentDashboard = () => {
       animate="visible"
       className="space-y-8"
     >
-      <div className="flex flex-wrap gap-3">
-        <button
-          className="btn btn-primary flex items-center"
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <motion.button
+          variants={itemVariants}
+          className={`group relative overflow-hidden rounded-xl p-6 text-left transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+            theme === 'dark' 
+              ? 'bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500' 
+              : 'bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500'
+          } text-white shadow-orange-500/25`}
           onClick={() => navigate('/book-classroom')}
         >
-          <Calendar className="w-4 h-4 mr-2" />
-          Book Classroom
-        </button>
-        <button
-          className="btn btn-secondary flex items-center"
+          <div className="relative z-10">
+            <div className="mb-3">
+              <Calendar className="w-8 h-8" />
+            </div>
+            <h3 className="text-lg font-semibold mb-1">Book Classroom</h3>
+            <p className="text-orange-100 text-sm">Reserve rooms for events and presentations</p>
+          </div>
+          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </motion.button>
+
+        <motion.button
+          variants={itemVariants}
+          className={`group relative overflow-hidden rounded-xl p-6 text-left transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+            theme === 'dark' 
+              ? 'bg-gradient-to-br from-red-500 to-red-600 hover:from-red-400 hover:to-red-500' 
+              : 'bg-gradient-to-br from-red-500 to-red-600 hover:from-red-400 hover:to-red-500'
+          } text-white shadow-red-500/25`}
           onClick={() => navigate('/raise-issue')}
         >
-          <AlertTriangle className="w-4 h-4 mr-2" />
-          Raise Issue
-        </button>
-        <button
-          className="btn btn-outline flex items-center"
+          <div className="relative z-10">
+            <div className="mb-3">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+            <h3 className="text-lg font-semibold mb-1">Raise Issue</h3>
+            <p className="text-red-100 text-sm">Report problems and maintenance requests</p>
+          </div>
+          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </motion.button>
+
+        <motion.button
+          variants={itemVariants}
+          className={`group relative overflow-hidden rounded-xl p-6 text-left transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+            theme === 'dark' 
+              ? 'bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500' 
+              : 'bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500'
+          } text-white shadow-blue-500/25`}
           onClick={() => navigate('/announcements')}
         >
-          <Megaphone className="w-4 h-4 mr-2" />
-          View Announcements
-        </button>
+          <div className="relative z-10">
+            <div className="mb-3">
+              <Megaphone className="w-8 h-8" />
+            </div>
+            <h3 className="text-lg font-semibold mb-1">Announcements</h3>
+            <p className="text-blue-100 text-sm">View latest news and updates</p>
+          </div>
+          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </motion.button>
       </div>
 
       {loading ? (
@@ -227,14 +265,14 @@ const StudentDashboard = () => {
               <motion.div
                 key={stat.title}
                 variants={itemVariants}
-                className="card card-hover p-6 cursor-pointer"
+                className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-gray-50'} border rounded-lg shadow-sm p-6 cursor-pointer transition-colors`}
                 onClick={stat.onClick}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-dark-400">{stat.title}</p>
-                    <p className="text-2xl font-bold text-dark-100 mt-1">{stat.value}</p>
-                    <p className="text-xs text-dark-500 mt-1">{stat.change}</p>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{stat.title}</p>
+                    <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mt-1`}>{stat.value}</p>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'} mt-1`}>{stat.change}</p>
                   </div>
                   <div className={`p-3 rounded-lg bg-${stat.color}-600/20`}>
                     <stat.icon className={`w-6 h-6 text-${stat.color}-400`} />
@@ -248,25 +286,25 @@ const StudentDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Bookings */}
-        <motion.div variants={itemVariants} className="card p-6">
+        <motion.div variants={itemVariants} className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-6`}>
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-dark-100">Recent Bookings</h3>
-            <Calendar className="w-5 h-5 text-dark-400" />
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Recent Bookings</h3>
+            <Calendar className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
           </div>
           
           <div className="space-y-4">
             {dashboardData.bookings.length > 0 ? dashboardData.bookings.map((booking) => (
-              <div key={booking._id} className="p-4 rounded-lg bg-dark-800 border border-dark-700 hover:bg-dark-750 transition-colors">
+              <div key={booking._id} className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700 border-gray-600 hover:bg-gray-650' : 'bg-gray-100 border-gray-200 hover:bg-gray-50'} border transition-colors`}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-primary-400" />
-                    <h4 className="font-medium text-dark-100 font-mono">{booking.room}</h4>
+                    <h4 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} font-mono`}>{booking.room}</h4>
                   </div>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(booking.status)}`}>
                     {booking.status}
                   </span>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-dark-400 mb-2">
+                <div className={`flex items-center gap-4 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
                   <div className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     <span>{formatDate(booking.date)}</span>
@@ -276,11 +314,11 @@ const StudentDashboard = () => {
                     <span>{formatTime(booking.startTime)} - {formatTime(booking.endTime)}</span>
                   </div>
                 </div>
-                <p className="text-sm text-dark-300 truncate">{booking.purpose}</p>
-                <p className="text-xs text-dark-500 mt-2">Created {getTimeAgo(booking.createdAt)}</p>
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} truncate`}>{booking.purpose}</p>
+                <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'} mt-2`}>Created {getTimeAgo(booking.createdAt)}</p>
               </div>
             )) : (
-              <div className="text-center py-8 text-dark-500">
+              <div className={`text-center py-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
                 <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
                 <p>No bookings yet</p>
                 <button 
@@ -307,28 +345,28 @@ const StudentDashboard = () => {
         </motion.div>
 
         {/* Recent Issues */}
-        <motion.div variants={itemVariants} className="card p-6">
+        <motion.div variants={itemVariants} className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-6`}>
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-dark-100">My Issues</h3>
-            <AlertTriangle className="w-5 h-5 text-dark-400" />
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>My Issues</h3>
+            <AlertTriangle className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
           </div>
           
           <div className="space-y-4">
             {dashboardData.issues.length > 0 ? dashboardData.issues.map((issue) => (
-              <div key={issue._id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-dark-800 transition-colors">
+              <div key={issue._id} className={`flex items-start space-x-3 p-3 rounded-lg hover:${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} transition-colors`}>
                 <div className={`w-2 h-2 rounded-full mt-2 ${
                   issue.status === 'resolved' ? 'bg-green-400' : 
                   issue.status === 'pending' ? 'bg-yellow-400' :
                   issue.status === 'rejected' ? 'bg-red-400' : 'bg-blue-400'
                 }`} />
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-dark-200">{issue.title}</h4>
-                  <p className="text-xs text-dark-400 mt-1">{issue.description}</p>
+                  <h4 className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>{issue.title}</h4>
+                  <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-1`}>{issue.description}</p>
                   <div className="flex items-center mt-2 space-x-2">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(issue.status)}`}>
                       {issue.status}
                     </span>
-                    <span className="text-xs text-dark-500">{getTimeAgo(issue.createdAt)}</span>
+                    <span className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>{getTimeAgo(issue.createdAt)}</span>
                     {issue.priority && (
                       <span className={`text-xs px-2 py-1 rounded ${
                         issue.priority === 'urgent' ? 'bg-red-900 text-red-300' :
@@ -343,7 +381,7 @@ const StudentDashboard = () => {
                 </div>
               </div>
             )) : (
-              <div className="text-center py-8 text-dark-500">
+              <div className={`text-center py-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
                 <AlertTriangle className="w-12 h-12 mx-auto mb-2 opacity-50" />
                 <p>No issues reported</p>
                 <button 
@@ -371,17 +409,17 @@ const StudentDashboard = () => {
       </div>
 
       {/* Recent Announcements */}
-      <motion.div variants={itemVariants} className="card p-6">
+      <motion.div variants={itemVariants} className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-6`}>
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-dark-100">Latest Announcements</h3>
-          <Megaphone className="w-5 h-5 text-dark-400" />
+          <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Latest Announcements</h3>
+          <Megaphone className={`w-5 h-5 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
         </div>
         
         <div className="space-y-4">
           {dashboardData.announcements.length > 0 ? dashboardData.announcements.map((announcement) => (
-            <div key={announcement._id} className="p-4 rounded-lg bg-dark-800 border border-dark-700 hover:bg-dark-750 transition-colors">
+            <div key={announcement._id} className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700 border-gray-600 hover:bg-gray-650' : 'bg-gray-100 border-gray-200 hover:bg-gray-50'} border transition-colors`}>
               <div className="flex items-start justify-between mb-2">
-                <h4 className="font-medium text-dark-100 flex-1">{announcement.title}</h4>
+                <h4 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'} flex-1`}>{announcement.title}</h4>
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ml-2 ${
                   announcement.priority === 'high' ? 'bg-red-500/20 text-red-400' : 
                   announcement.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
@@ -391,9 +429,9 @@ const StudentDashboard = () => {
                 </span>
               </div>
               {announcement.content && (
-                <p className="text-sm text-dark-300 mb-3 line-clamp-2">{announcement.content}</p>
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-3 line-clamp-2`}>{announcement.content}</p>
               )}
-              <div className="flex items-center justify-between text-xs text-dark-500">
+              <div className={`flex items-center justify-between text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
                 <div className="flex items-center gap-2">
                   <span className="capitalize">{announcement.category || 'general'}</span>
                   {announcement.isPinned && (
@@ -404,7 +442,7 @@ const StudentDashboard = () => {
               </div>
             </div>
           )) : (
-            <div className="text-center py-8 text-dark-500">
+            <div className={`text-center py-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
               <Megaphone className="w-12 h-12 mx-auto mb-2 opacity-50" />
               <p>No announcements available</p>
             </div>

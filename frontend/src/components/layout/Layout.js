@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTheme } from '../../contexts/ThemeContext';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { theme } = useTheme();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
   return (
-    <div className="min-h-screen bg-dark-950 lg:flex">
+    <div className={`min-h-screen lg:flex transition-colors duration-300 ${
+      theme === 'dark' 
+        ? 'bg-gray-900' 
+        : 'bg-gray-50'
+    }`}>
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
@@ -49,6 +55,7 @@ const Layout = () => {
 };
 
 export default Layout;
+
 
 
 

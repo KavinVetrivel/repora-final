@@ -3,13 +3,15 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, User, Clock, FileText, Check, X, Search, Eye } from 'lucide-react';
 import { issueAPI } from '../../utils/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const ApproveIssues = () => {
+  const { theme } = useTheme();
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState({});
   const [filters, setFilters] = useState({
-    status: 'open',
+    status: 'pending',
     search: '',
     category: '',
     priority: ''
@@ -21,6 +23,7 @@ const ApproveIssues = () => {
   });
 
   const statusColors = {
+    pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
     open: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     'in-progress': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
     resolved: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -191,20 +194,20 @@ const ApproveIssues = () => {
       >
         {/* Header */}
         <motion.div variants={itemVariants}>
-          <h1 className="text-2xl font-bold text-dark-100">Manage Issues</h1>
+          <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Manage Issues</h1>
           <p className="text-dark-400 mt-1">Review and manage student reported issues</p>
         </motion.div>
 
         {/* Filters */}
-        <motion.div variants={itemVariants} className="card p-4">
+        <motion.div variants={itemVariants} className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-4`}>
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-64">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-dark-400" />
+                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                 <input
                   type="text"
                   placeholder="Search by title, student name..."
-                  className="input pl-10"
+                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 />
@@ -212,11 +215,12 @@ const ApproveIssues = () => {
             </div>
             
             <select
-              className="input w-auto"
+              className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors w-auto ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               value={filters.status}
               onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
             >
               <option value="">All Status</option>
+              <option value="pending">Pending</option>
               <option value="open">Open</option>
               <option value="in-progress">In Progress</option>
               <option value="resolved">Resolved</option>
@@ -259,7 +263,7 @@ const ApproveIssues = () => {
               <LoadingSpinner size="lg" />
             </div>
           ) : !issues || issues.length === 0 ? (
-            <div className="card p-8 text-center">
+            <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-8 text-center`}>
               <AlertTriangle className="w-12 h-12 text-dark-500 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-dark-300 mb-2">No issues found</h3>
               <p className="text-dark-500">No issues match your current filters.</p>
@@ -269,7 +273,7 @@ const ApproveIssues = () => {
               <motion.div
                 key={issue._id}
                 variants={itemVariants}
-                className="card p-6 hover:bg-dark-800/50 transition-colors"
+                className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-gray-50'} border rounded-lg shadow-sm p-6 transition-colors`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                   <div className="flex-1 space-y-4">
@@ -280,7 +284,7 @@ const ApproveIssues = () => {
                           <AlertTriangle className="w-5 h-5 text-neon-orange" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-dark-100">{issue.title}</h3>
+                          <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{issue.title}</h3>
                           <p className="text-sm text-dark-400">
                             Reported by {issue.studentName} ({issue.studentRollNumber})
                           </p>
@@ -342,7 +346,7 @@ const ApproveIssues = () => {
 
                   {/* Actions */}
                   <div className="flex flex-col gap-2 lg:w-40">
-                    {issue.status === 'open' && (
+                    {(issue.status === 'pending' || issue.status === 'open') && (
                       <>
                         <button
                           onClick={() => handleInProgress(issue._id)}

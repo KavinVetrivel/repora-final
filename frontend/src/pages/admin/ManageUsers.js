@@ -3,8 +3,12 @@ import { motion } from 'framer-motion';
 import { Users, UserPlus, Search, Edit, Trash2, Shield, User, Mail, Phone, Building, CheckCircle } from 'lucide-react';
 import { usersAPI } from '../../utils/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ManageUsers = () => {
+  const { theme } = useTheme();
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState({});
@@ -145,16 +149,22 @@ const ManageUsers = () => {
   const handleToggleStatus = async (userId, currentStatus) => {
     if (processing[userId]) return;
     
+    console.log('Toggle status for user:', { userId, currentStatus });
+    
     setProcessing(prev => ({ ...prev, [userId]: true }));
     
     try {
       const newStatus = currentStatus ? 'inactive' : 'active';
-      await usersAPI.updateStatus(userId, newStatus);
+      console.log('Sending status update:', { userId, newStatus });
+      
+      const response = await usersAPI.updateStatus(userId, { status: newStatus });
+      console.log('Status update response:', response.data);
       
       // Refresh the users list
       await refetchUsers();
       alert(`User ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
+      console.error('Status update error:', error);
       const message = error.response?.data?.message || 'Failed to update user status';
       alert(message);
     } finally {
@@ -165,6 +175,14 @@ const ManageUsers = () => {
   const handleDeleteUser = async (userId, userName) => {
     if (processing[userId]) return;
     
+    // Prevent self-deletion
+    if (currentUser && currentUser._id === userId) {
+      alert('You cannot delete your own account');
+      return;
+    }
+    
+    console.log('Delete user request:', { userId, userName });
+    
     if (!window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
       return;
     }
@@ -172,12 +190,16 @@ const ManageUsers = () => {
     setProcessing(prev => ({ ...prev, [userId]: true }));
     
     try {
-      await usersAPI.remove(userId);
+      console.log('Sending delete request for userId:', userId);
+      
+      const response = await usersAPI.delete(userId);
+      console.log('Delete response:', response.data);
       
       // Refresh the users list
       await refetchUsers();
       alert('User deleted successfully');
     } catch (error) {
+      console.error('Delete user error:', error);
       const message = error.response?.data?.message || 'Failed to delete user';
       alert(message);
     } finally {
@@ -236,8 +258,8 @@ const ManageUsers = () => {
         {/* Header */}
         <motion.div variants={itemVariants} className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-dark-100">Manage Users</h1>
-            <p className="text-dark-400 mt-1">Add, edit, and manage system users</p>
+            <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Manage Users</h1>
+            <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-1`}>Add, edit, and manage system users</p>
           </div>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
@@ -254,9 +276,9 @@ const ManageUsers = () => {
             variants={itemVariants}
             initial="hidden"
             animate="visible"
-            className="card p-6"
+            className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-6`}
           >
-            <h3 className="text-lg font-semibold text-dark-100 mb-4">Add New User</h3>
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-4`}>Add New User</h3>
             <form onSubmit={handleAddUser} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -419,15 +441,15 @@ const ManageUsers = () => {
         )}
 
         {/* Filters */}
-        <motion.div variants={itemVariants} className="card p-4">
+        <motion.div variants={itemVariants} className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-4`}>
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-64">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-dark-400" />
+                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                 <input
                   type="text"
                   placeholder="Search by name, email, or roll number..."
-                  className="input pl-10"
+                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 />
@@ -464,24 +486,24 @@ const ManageUsers = () => {
               <LoadingSpinner size="lg" />
             </div>
           ) : !users || users.length === 0 ? (
-            <div className="card p-8 text-center">
-              <Users className="w-12 h-12 text-dark-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-dark-300 mb-2">No users found</h3>
-              <p className="text-dark-500">No users match your current filters.</p>
+            <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-8 text-center`}>
+              <Users className={`w-12 h-12 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} mx-auto mb-4`} />
+              <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>No users found</h3>
+              <p className={`${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>No users match your current filters.</p>
             </div>
           ) : (
             users.map((user) => (
               <motion.div
                 key={user._id}
                 variants={itemVariants}
-                className="card p-6 hover:bg-dark-800/50 transition-colors"
+                className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-gray-50'} border rounded-lg shadow-sm p-6 transition-colors`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   <div className="flex-1 space-y-3">
                     {/* Header */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="p-2 rounded-lg bg-dark-700">
+                        <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
                           {user.role === 'admin' ? (
                             <Shield className="w-5 h-5 text-purple-400" />
                           ) : (
@@ -489,8 +511,8 @@ const ManageUsers = () => {
                           )}
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-dark-100">{user.name}</h3>
-                          <p className="text-sm text-dark-400">{user.rollNumber}</p>
+                          <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{user.name}</h3>
+                          <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{user.rollNumber}</p>
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -554,7 +576,11 @@ const ManageUsers = () => {
                     <button
                       onClick={() => handleToggleStatus(user._id, user.isActive)}
                       disabled={processing[user._id]}
-                      className={`btn ${user.isActive ? 'btn-warning' : 'btn-success'} flex items-center justify-center text-sm`}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 text-sm flex items-center justify-center ${
+                        user.isActive 
+                          ? `${theme === 'dark' ? 'bg-yellow-600 hover:bg-yellow-700 text-white' : 'bg-yellow-500 hover:bg-yellow-600 text-white'} focus:ring-yellow-500` 
+                          : `${theme === 'dark' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-green-500 hover:bg-green-600 text-white'} focus:ring-green-500`
+                      } ${processing[user._id] ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       {processing[user._id] ? (
                         <LoadingSpinner size="sm" />
@@ -568,8 +594,13 @@ const ManageUsers = () => {
                     
                     <button
                       onClick={() => handleDeleteUser(user._id, user.name)}
-                      disabled={processing[user._id]}
-                      className="btn btn-danger flex items-center justify-center text-sm"
+                      disabled={processing[user._id] || (currentUser && currentUser._id === user._id)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 text-sm flex items-center justify-center ${
+                        theme === 'dark' 
+                          ? 'bg-red-600 hover:bg-red-700 text-white' 
+                          : 'bg-red-500 hover:bg-red-600 text-white'
+                      } focus:ring-red-500 ${(processing[user._id] || (currentUser && currentUser._id === user._id)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      title={currentUser && currentUser._id === user._id ? 'Cannot delete your own account' : 'Delete user'}
                     >
                       {processing[user._id] ? (
                         <LoadingSpinner size="sm" />

@@ -3,10 +3,12 @@ import { motion } from 'framer-motion';
 import { Megaphone, Plus, Search, Pin, Calendar, User, Eye, Trash2 } from 'lucide-react';
 import { announcementAPI } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const Announcements = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const isAdmin = user?.role === 'admin';
   
   const [announcements, setAnnouncements] = useState([]);
@@ -27,18 +29,36 @@ const Announcements = () => {
   });
 
   const categoryColors = {
-    general: 'bg-blue-500/20 text-blue-400',
-    academic: 'bg-purple-500/20 text-purple-400',
-    events: 'bg-green-500/20 text-green-400',
-    exam: 'bg-orange-500/20 text-orange-400',
-    holiday: 'bg-indigo-500/20 text-indigo-400',
-    important: 'bg-red-500/20 text-red-400'
+    general: theme === 'dark' 
+      ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' 
+      : 'bg-blue-50 text-blue-700 border-blue-200',
+    academic: theme === 'dark'
+      ? 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+      : 'bg-purple-50 text-purple-700 border-purple-200',
+    events: theme === 'dark'
+      ? 'bg-green-500/20 text-green-400 border-green-500/30'
+      : 'bg-green-50 text-green-700 border-green-200',
+    exam: theme === 'dark'
+      ? 'bg-orange-500/20 text-orange-400 border-orange-500/30'
+      : 'bg-orange-50 text-orange-700 border-orange-200',
+    holiday: theme === 'dark'
+      ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
+      : 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    important: theme === 'dark'
+      ? 'bg-red-500/20 text-red-400 border-red-500/30'
+      : 'bg-red-50 text-red-700 border-red-200'
   };
 
   const priorityColors = {
-    low: 'bg-blue-500/20 text-blue-400',
-    medium: 'bg-yellow-500/20 text-yellow-400',
-    high: 'bg-red-500/20 text-red-400'
+    low: theme === 'dark'
+      ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+      : 'bg-blue-50 text-blue-700 border-blue-200',
+    medium: theme === 'dark'
+      ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+      : 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    high: theme === 'dark'
+      ? 'bg-red-500/20 text-red-400 border-red-500/30'
+      : 'bg-red-50 text-red-700 border-red-200'
   };
 
   useEffect(() => {
@@ -188,15 +208,19 @@ const Announcements = () => {
         {/* Header */}
         <motion.div variants={itemVariants} className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-dark-100">Announcements</h1>
-            <p className="text-dark-400 mt-1">
+            <h1 className={`text-2xl font-bold ${
+              theme === 'dark' ? 'text-white' : 'text-gray-900'
+            }`}>Announcements</h1>
+            <p className={`mt-1 ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+            }`}>
               {isAdmin ? 'Create and manage announcements' : 'Stay updated with latest announcements'}
             </p>
           </div>
           {isAdmin && (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="btn btn-primary flex items-center"
+              className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center"
             >
               <Plus className="w-4 h-4 mr-2" />
               New Announcement
@@ -209,17 +233,29 @@ const Announcements = () => {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="card p-6"
+            className={`rounded-lg border p-6 ${
+              theme === 'dark'
+                ? 'bg-gray-800 border-gray-700'
+                : 'bg-white border-gray-200'
+            }`}
           >
-            <h3 className="text-lg font-semibold text-dark-100 mb-4">Create New Announcement</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${
+              theme === 'dark' ? 'text-white' : 'text-gray-900'
+            }`}>Create New Announcement</h3>
             <form onSubmit={handleCreateAnnouncement} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-dark-200 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Title *
                 </label>
                 <input
                   type="text"
-                  className="input"
+                  className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-orange-500/20'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500/20'
+                  } focus:ring-2 focus:outline-none`}
                   value={newAnnouncement.title}
                   onChange={(e) => setNewAnnouncement(prev => ({ ...prev, title: e.target.value }))}
                   placeholder="Announcement title"
@@ -228,11 +264,17 @@ const Announcements = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-dark-200 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Content *
                 </label>
                 <textarea
-                  className="input resize-none"
+                  className={`w-full px-4 py-2 rounded-lg border transition-colors resize-none ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-orange-500/20'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500/20'
+                  } focus:ring-2 focus:outline-none`}
                   rows={4}
                   value={newAnnouncement.content}
                   onChange={(e) => setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))}
@@ -243,11 +285,17 @@ const Announcements = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-dark-200 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Category
                   </label>
                   <select
-                    className="input"
+                    className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-600 text-white focus:border-orange-500'
+                        : 'bg-white border-gray-300 text-gray-900 focus:border-orange-500'
+                    } focus:ring-2 focus:ring-orange-500/20 focus:outline-none`}
                     value={newAnnouncement.category}
                     onChange={(e) => setNewAnnouncement(prev => ({ ...prev, category: e.target.value }))}
                   >
@@ -261,11 +309,17 @@ const Announcements = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-dark-200 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Priority
                   </label>
                   <select
-                    className="input"
+                    className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-600 text-white focus:border-orange-500'
+                        : 'bg-white border-gray-300 text-gray-900 focus:border-orange-500'
+                    } focus:ring-2 focus:ring-orange-500/20 focus:outline-none`}
                     value={newAnnouncement.priority}
                     onChange={(e) => setNewAnnouncement(prev => ({ ...prev, priority: e.target.value }))}
                   >
@@ -276,17 +330,25 @@ const Announcements = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-dark-200 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Options
                   </label>
                   <label className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      className="rounded border-dark-600 bg-dark-700 text-neon-blue focus:ring-neon-blue"
+                      className={`rounded border-2 ${
+                        theme === 'dark'
+                          ? 'border-gray-600 bg-gray-700 text-orange-500 focus:ring-orange-500/20'
+                          : 'border-gray-300 bg-white text-orange-500 focus:ring-orange-500/20'
+                      } focus:ring-2`}
                       checked={newAnnouncement.isPinned}
                       onChange={(e) => setNewAnnouncement(prev => ({ ...prev, isPinned: e.target.checked }))}
                     />
-                    <span className="text-sm text-dark-300">Pin announcement</span>
+                    <span className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                    }`}>Pin announcement</span>
                   </label>
                 </div>
               </div>
@@ -295,7 +357,7 @@ const Announcements = () => {
                 <button
                   type="submit"
                   disabled={processing.create}
-                  className="btn btn-primary flex items-center"
+                  className="bg-orange-500 hover:bg-orange-600 disabled:bg-orange-400 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center"
                 >
                   {processing.create ? (
                     <>
@@ -310,7 +372,11 @@ const Announcements = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateForm(false)}
-                  className="btn btn-secondary"
+                  className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}
                 >
                   Cancel
                 </button>
@@ -320,15 +386,25 @@ const Announcements = () => {
         )}
 
         {/* Filters */}
-        <motion.div variants={itemVariants} className="card p-4">
+        <motion.div variants={itemVariants} className={`rounded-lg border p-4 ${
+          theme === 'dark'
+            ? 'bg-gray-800 border-gray-700'
+            : 'bg-white border-gray-200'
+        }`}>
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-64">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-dark-400" />
+                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                }`} />
                 <input
                   type="text"
                   placeholder="Search announcements..."
-                  className="input pl-10"
+                  className={`w-full pl-10 pr-4 py-2 rounded-lg border transition-colors ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-orange-500'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-orange-500'
+                  } focus:ring-2 focus:ring-orange-500/20 focus:outline-none`}
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 />
@@ -336,7 +412,11 @@ const Announcements = () => {
             </div>
             
             <select
-              className="input w-auto"
+              className={`px-4 py-2 rounded-lg border transition-colors w-auto ${
+                theme === 'dark'
+                  ? 'bg-gray-700 border-gray-600 text-white focus:border-orange-500'
+                  : 'bg-white border-gray-300 text-gray-900 focus:border-orange-500'
+              } focus:ring-2 focus:ring-orange-500/20 focus:outline-none`}
               value={filters.category}
               onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
             >
@@ -350,7 +430,11 @@ const Announcements = () => {
             </select>
 
             <select
-              className="input w-auto"
+              className={`px-4 py-2 rounded-lg border transition-colors w-auto ${
+                theme === 'dark'
+                  ? 'bg-gray-700 border-gray-600 text-white focus:border-orange-500'
+                  : 'bg-white border-gray-300 text-gray-900 focus:border-orange-500'
+              } focus:ring-2 focus:ring-orange-500/20 focus:outline-none`}
               value={filters.priority}
               onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
             >
@@ -369,10 +453,18 @@ const Announcements = () => {
               <LoadingSpinner size="lg" />
             </div>
           ) : !announcements || announcements.length === 0 ? (
-            <div className="card p-8 text-center">
-              <Megaphone className="w-12 h-12 text-dark-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-dark-300 mb-2">No announcements found</h3>
-              <p className="text-dark-500">
+            <div className={`rounded-lg border p-8 text-center ${
+              theme === 'dark'
+                ? 'bg-gray-800 border-gray-700'
+                : 'bg-white border-gray-200'
+            }`}>
+              <Megaphone className={`w-12 h-12 mx-auto mb-4 ${
+                theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+              }`} />
+              <h3 className={`text-lg font-medium mb-2 ${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+              }`}>No announcements found</h3>
+              <p className={theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}>
                 {isAdmin ? 'Create your first announcement to get started.' : 'No announcements match your current filters.'}
               </p>
             </div>
@@ -381,7 +473,11 @@ const Announcements = () => {
               <motion.div
                 key={announcement._id}
                 variants={itemVariants}
-                className={`card p-6 hover:bg-dark-800/50 transition-colors ${
+                className={`rounded-lg border p-6 transition-all ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 border-gray-700 hover:bg-gray-750'
+                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                } ${
                   announcement.isPinned ? 'ring-2 ring-yellow-500/50' : ''
                 }`}
               >
@@ -390,40 +486,54 @@ const Announcements = () => {
                     {/* Header */}
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-3">
-                        <div className="p-2 rounded-lg bg-dark-700">
-                          <Megaphone className="w-5 h-5 text-neon-green" />
+                        <div className={`p-2 rounded-lg ${
+                          theme === 'dark' ? 'bg-gray-700' : 'bg-orange-50'
+                        }`}>
+                          <Megaphone className="w-5 h-5 text-orange-500" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
-                            <h3 className="text-lg font-semibold text-dark-100">{announcement.title}</h3>
+                            <h3 className={`text-lg font-semibold ${
+                              theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}>{announcement.title}</h3>
                             {announcement.isPinned && (
-                              <Pin className="w-4 h-4 text-yellow-400" />
+                              <Pin className="w-4 h-4 text-yellow-500" />
                             )}
                           </div>
-                          <p className="text-sm text-dark-400 mt-1">
+                          <p className={`text-sm mt-1 ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                          }`}>
                             {getTimeAgo(announcement.publishDate || announcement.createdAt)}
                           </p>
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <span className={`badge ${categoryColors[announcement.category]}`}>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${categoryColors[announcement.category]}`}>
                           {announcement.category}
                         </span>
-                        <span className={`badge ${priorityColors[announcement.priority]}`}>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${priorityColors[announcement.priority]}`}>
                           {announcement.priority}
                         </span>
                       </div>
                     </div>
 
                     {/* Content */}
-                    <div className="bg-dark-800 rounded-lg p-4">
-                      <p className="text-dark-200 leading-relaxed">
+                    <div className={`rounded-lg p-4 ${
+                      theme === 'dark'
+                        ? 'bg-gray-700/50'
+                        : 'bg-gray-50'
+                    }`}>
+                      <p className={`leading-relaxed ${
+                        theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
+                      }`}>
                         {announcement.content}
                       </p>
                     </div>
 
                     {/* Metadata */}
-                    <div className="flex items-center justify-between text-sm text-dark-500">
+                    <div className={`flex items-center justify-between text-sm ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-1">
                           <User className="w-4 h-4" />
@@ -449,7 +559,13 @@ const Announcements = () => {
                       <button
                         onClick={() => handleTogglePin(announcement._id, announcement.isPinned)}
                         disabled={processing[announcement._id]}
-                        className={`btn ${announcement.isPinned ? 'btn-warning' : 'btn-secondary'} flex items-center justify-center text-sm`}
+                        className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm flex items-center justify-center ${
+                          announcement.isPinned 
+                            ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                            : theme === 'dark'
+                              ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                              : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                        }`}
                       >
                         {processing[announcement._id] ? (
                           <LoadingSpinner size="sm" />
@@ -464,7 +580,7 @@ const Announcements = () => {
                       <button
                         onClick={() => handleDeleteAnnouncement(announcement._id, announcement.title)}
                         disabled={processing[announcement._id]}
-                        className="btn btn-danger flex items-center justify-center text-sm"
+                        className="bg-red-500 hover:bg-red-600 disabled:bg-red-400 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm flex items-center justify-center"
                       >
                         {processing[announcement._id] ? (
                           <LoadingSpinner size="sm" />
@@ -488,6 +604,7 @@ const Announcements = () => {
 };
 
 export default Announcements;
+
 
 
 

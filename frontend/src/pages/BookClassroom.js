@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { bookingAPI } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 // College blocks and their floors
 const COLLEGE_BLOCKS = {
@@ -42,6 +43,7 @@ const BookClassroom = () => {
   const [availabilityStatus, setAvailabilityStatus] = useState(null);
   const [existingBookings, setExistingBookings] = useState([]);
   const { user } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   const generateRoomCode = (block, floor, roomNumber) => {
@@ -194,7 +196,7 @@ const BookClassroom = () => {
   };
 
   return (
-    <div className="min-h-full bg-dark-950">
+    <div className={`min-h-full ${theme === 'dark' ? 'bg-gray-950' : 'bg-gray-50'}`}>
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -203,47 +205,47 @@ const BookClassroom = () => {
           className="max-w-3xl mx-auto"
         >
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-dark-100">Book a Classroom</h1>
-            <p className="text-dark-400 mt-2">
+            <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Book a Classroom</h1>
+            <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
               Reserve classrooms and labs for presentations, study sessions, and events.
             </p>
           </div>
 
-          <div className="card p-8">
+          <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-8`}>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Student Information Section */}
-              <div className="border-b border-dark-800 pb-6 mb-6">
-                <h3 className="text-lg font-semibold text-dark-200 mb-4">Student Information</h3>
+              <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} pb-6 mb-6`}>
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-4`}>Student Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                       Roll Number
                     </label>
                     <input
                       type="text"
-                      className="input bg-dark-800 text-dark-300"
+                      className={`input ${theme === 'dark' ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-gray-100 text-gray-800 border-gray-300'}`}
                       value={user?.rollNumber || ''}
                       disabled
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                       Name
                     </label>
                     <input
                       type="text"
-                      className="input bg-dark-800 text-dark-300"
+                      className={`input ${theme === 'dark' ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-gray-100 text-gray-800 border-gray-300'}`}
                       value={user?.name || ''}
                       disabled
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                       Department & Year
                     </label>
                     <input
                       type="text"
-                      className="input bg-dark-800 text-dark-300"
+                      className={`input ${theme === 'dark' ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-gray-100 text-gray-800 border-gray-300'}`}
                       value={user ? `${user.department} - Year ${user.year}` : ''}
                       disabled
                     />
@@ -252,11 +254,11 @@ const BookClassroom = () => {
               </div>
 
               {/* Room Selection Section */}
-              <div className="border-b border-dark-800 pb-6 mb-6">
-                <h3 className="text-lg font-semibold text-dark-200 mb-4">Classroom Selection</h3>
+              <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} pb-6 mb-6`}>
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-4`}>Classroom Selection</h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-dark-300 mb-2" htmlFor="block">
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="block">
                       Block
                     </label>
                     <select
@@ -277,7 +279,7 @@ const BookClassroom = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-dark-300 mb-2" htmlFor="floor">
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="floor">
                       Floor
                     </label>
                     <select
@@ -299,7 +301,7 @@ const BookClassroom = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-dark-300 mb-2" htmlFor="roomNumber">
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="roomNumber">
                       Room Number
                     </label>
                     <select
@@ -321,10 +323,10 @@ const BookClassroom = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                       Room Code
                     </label>
-                    <div className="input bg-dark-800 text-dark-100 font-mono text-lg flex items-center justify-center">
+                    <div className={`input ${theme === 'dark' ? 'bg-gray-700 text-white border-gray-600' : 'bg-gray-100 text-gray-900 border-gray-300'} font-mono text-lg flex items-center justify-center`}>
                       {formData.room || 'XXX'}
                     </div>
                   </div>
@@ -332,11 +334,11 @@ const BookClassroom = () => {
               </div>
 
               {/* Date and Time Section */}
-              <div className="border-b border-dark-800 pb-6 mb-6">
-                <h3 className="text-lg font-semibold text-dark-200 mb-4">Booking Details</h3>
+              <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} pb-6 mb-6`}>
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-4`}>Booking Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-dark-300 mb-2" htmlFor="date">
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="date">
                       Date
                     </label>
                     <input
@@ -352,7 +354,7 @@ const BookClassroom = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-dark-300 mb-2" htmlFor="startTime">
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="startTime">
                       Start Time
                     </label>
                     <input
@@ -367,7 +369,7 @@ const BookClassroom = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-dark-300 mb-2" htmlFor="endTime">
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="endTime">
                       End Time
                     </label>
                     <input
@@ -386,7 +388,7 @@ const BookClassroom = () => {
                 {formData.room && formData.date && formData.startTime && formData.endTime && (
                   <div className="mt-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-dark-300">Room Availability</span>
+                      <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Room Availability</span>
                       <button
                         type="button"
                         onClick={checkRoomAvailability}
@@ -428,16 +430,16 @@ const BookClassroom = () => {
                         <p className="text-sm">{availabilityStatus.message}</p>
                         
                         {availabilityStatus.conflictingBooking && (
-                          <div className="mt-3 p-3 bg-dark-800 rounded-lg">
-                            <p className="text-xs text-dark-400 mb-1">Conflicting booking:</p>
+                          <div className={`mt-3 p-3 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg`}>
+                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Conflicting booking:</p>
                             <p className="text-sm">
                               <span className="font-medium">{availabilityStatus.conflictingBooking.studentName}</span> 
                               {' '}({availabilityStatus.conflictingBooking.studentRollNumber})
                             </p>
-                            <p className="text-sm text-dark-300">
+                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                               {availabilityStatus.conflictingBooking.startTime} - {availabilityStatus.conflictingBooking.endTime}
                             </p>
-                            <p className="text-xs text-dark-400 capitalize">
+                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} capitalize`}>
                               Status: {availabilityStatus.conflictingBooking.status}
                             </p>
                           </div>
@@ -448,12 +450,12 @@ const BookClassroom = () => {
                     {/* Show existing bookings for the day */}
                     {existingBookings.length > 0 && (
                       <div className="mt-4">
-                        <p className="text-sm font-medium text-dark-300 mb-2">
+                        <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                           Other bookings for {formData.room} on this day:
                         </p>
                         <div className="space-y-2 max-h-32 overflow-y-auto">
                           {existingBookings.map(booking => (
-                            <div key={booking._id} className="p-2 bg-dark-800 rounded text-sm">
+                            <div key={booking._id} className={`p-2 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} rounded text-sm`}>
                               <div className="flex justify-between items-center">
                                 <span>
                                   {booking.startTime} - {booking.endTime}
@@ -468,7 +470,7 @@ const BookClassroom = () => {
                                   {booking.status}
                                 </span>
                               </div>
-                              <p className="text-dark-400 text-xs mt-1">
+                              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-xs mt-1`}>
                                 {booking.studentName} ({booking.studentRollNumber})
                               </p>
                             </div>
@@ -482,9 +484,9 @@ const BookClassroom = () => {
 
               {/* Purpose Section */}
               <div>
-                <h3 className="text-lg font-semibold text-dark-200 mb-4">Purpose & Additional Details</h3>
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-4`}>Purpose & Additional Details</h3>
                 <div>
-                  <label className="block text-sm font-medium text-dark-300 mb-2" htmlFor="purpose">
+                  <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="purpose">
                     Purpose of Booking
                   </label>
                   <textarea
@@ -502,7 +504,7 @@ const BookClassroom = () => {
                       ? 'text-red-400' 
                       : formData.purpose.length > 500 
                       ? 'text-yellow-400' 
-                      : 'text-dark-400'
+                      : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                   }`}>
                     {formData.purpose.length}/500 characters {formData.purpose.length < 10 && '(minimum 10 required)'}
                   </p>
@@ -510,8 +512,8 @@ const BookClassroom = () => {
               </div>
 
               {/* Submit Section */}
-              <div className="flex justify-between items-center pt-6 border-t border-dark-800">
-                <div className="text-sm text-dark-400">
+              <div className={`flex justify-between items-center pt-6 border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                   <p>• Your booking will be submitted for admin approval</p>
                   <p>• You can track the status in your bookings page</p>
                 </div>

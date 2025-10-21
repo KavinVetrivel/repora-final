@@ -16,11 +16,13 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { issueAPI } from '../utils/api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const Issues = () => {
   const { isAdmin } = useAuth();
+  const { theme } = useTheme();
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -160,7 +162,7 @@ const Issues = () => {
 
   if (isAdmin()) {
     return (
-      <div className="min-h-full bg-dark-950">
+      <div className={`min-h-full ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="px-4 sm:px-6 lg:px-8 py-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -169,14 +171,14 @@ const Issues = () => {
             className="max-w-7xl mx-auto"
           >
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-dark-100">Issues</h1>
-              <p className="text-dark-400 mt-2">
+              <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Issues</h1>
+              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
                 Track and resolve student issues. Go to Admin Dashboard to manage issues.
               </p>
             </div>
-            <div className="card p-8 text-center">
+            <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-8 text-center`}>
               <div className="text-6xl mb-4">🐛</div>
-              <h3 className="text-xl font-semibold text-dark-200 mb-4">
+              <h3 className={`text-xl font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-4`}>
                 Admin Issue Management
               </h3>
               <Link 
@@ -193,22 +195,25 @@ const Issues = () => {
   }
 
   return (
-    <div className="min-h-full bg-dark-950">
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-7xl mx-auto"
-        >
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-dark-100">My Issues</h1>
-              <p className="text-dark-400 mt-2">
-                Track your reported issues and their resolution status
-              </p>
-            </div>
+    <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-6"
+      >
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className={`text-3xl font-bold ${
+              theme === 'dark' ? 'text-white' : 'text-gray-900'
+            }`}>My Issues</h1>
+            <p className={`mt-2 ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+            }`}>
+              Track your reported issues and their resolution status
+            </p>
+          </div>
             <Link
               to="/raise-issue"
               className="btn btn-primary mt-4 sm:mt-0"
@@ -219,11 +224,11 @@ const Issues = () => {
           </div>
 
           {/* Filters */}
-          <div className="card p-6 mb-6">
+          <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-6 mb-6`}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-500 w-4 h-4" />
+                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} w-4 h-4`} />
                   <input
                     type="text"
                     placeholder="Search issues..."
@@ -235,7 +240,7 @@ const Issues = () => {
               </div>
               <div>
                 <div className="relative">
-                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-500 w-4 h-4" />
+                  <Filter className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} w-4 h-4`} />
                   <select
                     className="input pl-10"
                     value={filters.status}
@@ -281,17 +286,17 @@ const Issues = () => {
 
           {/* Issues List */}
           {loading ? (
-            <div className="card p-12 text-center">
+            <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-12 text-center`}>
               <LoadingSpinner size="lg" />
-              <p className="text-dark-400 mt-4">Loading your issues...</p>
+              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-4`}>Loading your issues...</p>
             </div>
           ) : issues.length === 0 ? (
-            <div className="card p-12 text-center">
-              <AlertTriangle className="w-16 h-16 text-dark-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-dark-200 mb-2">
+            <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-12 text-center`}>
+              <AlertTriangle className={`w-16 h-16 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-400'} mx-auto mb-4`} />
+              <h3 className={`text-xl font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-2`}>
                 No Issues Found
               </h3>
-              <p className="text-dark-400 mb-6">
+              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mb-6`}>
                 {Object.values(filters).some(f => f !== 'all' && f !== '')
                   ? "No issues match your current filters."
                   : "You haven't reported any issues yet."
@@ -311,35 +316,35 @@ const Issues = () => {
                   key={issue._id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="card p-6"
+                  className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-6`}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
                         <span className="text-2xl">{getCategoryIcon(issue.category)}</span>
-                        <h3 className="text-lg font-semibold text-dark-100">
+                        <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                           {issue.title}
                         </h3>
                         {getStatusBadge(issue.status)}
                         {getPriorityBadge(issue.priority)}
                       </div>
                       
-                      <p className="text-dark-300 mb-4 line-clamp-3">
+                      <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-4 line-clamp-3`}>
                         {issue.description}
                       </p>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm text-dark-400">
+                      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                         <div className="flex items-center">
-                          <Tag className="w-4 h-4 mr-2 text-dark-500" />
+                          <Tag className={`w-4 h-4 mr-2 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`} />
                           {issue.category}
                         </div>
                         <div className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-2 text-dark-500" />
+                          <Calendar className={`w-4 h-4 mr-2 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`} />
                           {formatDate(issue.createdAt)}
                         </div>
                         {issue.assignedTo && (
                           <div className="flex items-center">
-                            <User className="w-4 h-4 mr-2 text-dark-500" />
+                            <User className={`w-4 h-4 mr-2 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`} />
                             Assigned to {issue.assignedTo.name}
                           </div>
                         )}
@@ -371,13 +376,13 @@ const Issues = () => {
               ))}
             </div>
           )}
-        </motion.div>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
 export default Issues;
+
 
 
 

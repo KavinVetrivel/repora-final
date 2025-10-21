@@ -14,9 +14,11 @@ import {
 } from 'lucide-react';
 import { usersAPI } from '../../utils/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { useTheme } from '../../contexts/ThemeContext';
 import toast from 'react-hot-toast';
 
 const ApproveUsers = () => {
+  const { theme } = useTheme();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState(new Set());
@@ -103,7 +105,7 @@ const ApproveUsers = () => {
   };
 
   return (
-    <div className="min-h-full bg-dark-950">
+    <div className={`min-h-full ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -115,38 +117,38 @@ const ApproveUsers = () => {
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <Users className="w-8 h-8 text-neon-blue" />
-              <h1 className="text-3xl font-bold text-dark-100">User Approvals</h1>
+              <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>User Approvals</h1>
             </div>
-            <p className="text-dark-400">
+            <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
               Review and approve student registration requests
             </p>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-            <div className="card p-6">
+            <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-6`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-dark-400">Pending Approval</p>
-                  <p className="text-2xl font-bold text-dark-100">{users.length}</p>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Pending Approval</p>
+                  <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{users.length}</p>
                 </div>
                 <Clock className="w-8 h-8 text-yellow-400" />
               </div>
             </div>
-            <div className="card p-6">
+            <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-6`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-dark-400">Processing</p>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Processing</p>
                   <p className="text-2xl font-bold text-dark-100">{processingIds.size}</p>
                 </div>
                 <LoadingSpinner size="sm" />
               </div>
             </div>
-            <div className="card p-6">
+            <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-6`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-dark-400">Total Requests</p>
-                  <p className="text-2xl font-bold text-dark-100">{users.length + processingIds.size}</p>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Total Requests</p>
+                  <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{users.length + processingIds.size}</p>
                 </div>
                 <Users className="w-8 h-8 text-neon-blue" />
               </div>
@@ -155,17 +157,17 @@ const ApproveUsers = () => {
 
           {/* Pending Users List */}
           {loading ? (
-            <div className="card p-12 text-center">
+            <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-12 text-center`}>
               <LoadingSpinner size="lg" />
-              <p className="text-dark-400 mt-4">Loading pending user requests...</p>
+              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-4`}>Loading pending user requests...</p>
             </div>
           ) : users.length === 0 ? (
-            <div className="card p-12 text-center">
+            <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-12 text-center`}>
               <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-dark-200 mb-2">
+              <h3 className={`text-xl font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-2`}>
                 All Caught Up!
               </h3>
-              <p className="text-dark-400">
+              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                 No pending user registrations to review at this time.
               </p>
             </div>
@@ -176,7 +178,7 @@ const ApproveUsers = () => {
                   key={user._id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="card p-6"
+                  className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-6`}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex-1">

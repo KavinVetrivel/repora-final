@@ -1,342 +1,591 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, FileText, ArrowLeft, Send, Upload, X } from 'lucide-react';
-import { issueAPI } from '../utils/api';
+import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { roomsAPI, issueAPI } from '../utils/api';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+
+// College blocks and their floors (matching BookClassroom structure)
+const COLLEGE_BLOCKS = {
+  'A': { name: 'A Block', floors: [1, 2, 3, 4, 5] },
+  'B': { name: 'B Block', floors: [1, 2, 3, 4] },
+  'C': { name: 'C Block', floors: [1, 2, 3] },
+  'D': { name: 'D Block', floors: [1, 2, 3, 4] },
+  'E': { name: 'E Block', floors: [1, 2] }
+};
+
+// Rooms per floor (matching BookClassroom structure)
+const ROOMS_PER_FLOOR = {
+  1: Array.from({ length: 12 }, (_, i) => i + 1),
+  2: Array.from({ length: 15 }, (_, i) => i + 1),
+  3: Array.from({ length: 15 }, (_, i) => i + 1),
+  4: Array.from({ length: 10 }, (_, i) => i + 1),
+  5: Array.from({ length: 8 }, (_, i) => i + 1)
+};
+
+const initialState = {
+  block: '',
+  floor: '',
+  roomNumber: '',
+  room: '',
+  title: '',
+  description: '',
+  priority: 'medium',
+  selectedComponents: [],
+  attachments: []
+};
 
 const RaiseIssue = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: 'other',
-    priority: 'medium'
-  });
-  const [files, setFiles] = useState([]);
-  const [errors, setErrors] = useState({});
+  const { user } = useAuth();
+  const { theme } = useTheme();
+  const [formData, setFormData] = useState(initialState);
+  const [submitting, setSubmitting] = useState(false);
+  const [loadingComponents, setLoadingComponents] = useState(false);
+  const [roomComponents, setRoomComponents] = useState([]);
 
-  const categories = [
-    { value: 'academic', label: 'Academic' },
-    { value: 'infrastructure', label: 'Infrastructure' },
-    { value: 'hostel', label: 'Hostel' },
-    { value: 'canteen', label: 'Canteen' },
-    { value: 'transport', label: 'Transport' },
-    { value: 'other', label: 'Other' }
-  ];
+  const generateRoomCode = (block, floor, roomNumber) => {
+    if (!block || !floor || !roomNumber) return '';
+    const paddedRoom = roomNumber.toString().padStart(2, '0');
+    return `${block}${floor}${paddedRoom}`;
+  };
 
-  const priorities = [
-    { value: 'low', label: 'Low' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'high', label: 'High' },
-    { value: 'urgent', label: 'Urgent' }
-  ];
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      if (['block', 'floor', 'roomNumber'].includes(name)) {
+        updated.room = generateRoomCode(
+          name === 'block' ? value : prev.block,
+          name === 'floor' ? value : prev.floor,
+          name === 'roomNumber' ? value : prev.roomNumber
+        );
+        
+        if (name === 'block') {
+          updated.floor = '';
+          updated.roomNumber = '';
+          updated.room = '';
+          setRoomComponents([]);
+          updated.selectedComponents = [];
+        }
+        
+        if (name === 'floor') {
+          updated.roomNumber = '';
+          updated.room = generateRoomCode(prev.block, value, '');
+          setRoomComponents([]);
+          updated.selectedComponents = [];
+        }
+
+        if (name === 'roomNumber') {
+          updated.selectedComponents = [];
+        }
+      }
+
+      return updated;
+    });
+  };
+
+  useEffect(() => {
+    if (formData.room) {
+      fetchRoomComponents(formData.room);
+    } else {
+      setRoomComponents([]);
     }
+  }, [formData.room]);
+
+  const fetchRoomComponents = async (roomCode) => {
+    try {
+      setLoadingComponents(true);
+      const response = await roomsAPI.getRoomComponents(roomCode);
+      if (response.data.status === 'success') {
+        const allComponents = [];
+        Object.entries(response.data.data.componentsByCategory).forEach(([category, components]) => {
+          components.forEach(component => {
+            allComponents.push({
+              ...component,
+              category,
+              displayName: `${component.name} (${category})`
+            });
+          });
+        });
+        setRoomComponents(allComponents);
+      }
+    } catch (error) {
+      console.error('Error fetching room components:', error);
+      toast.error('Failed to load room equipment. Please try again.');
+      setRoomComponents([]);
+    } finally {
+      setLoadingComponents(false);
+    }
+  };
+
+  const handleComponentSelect = (componentId) => {
+    const component = roomComponents.find(c => c.id === componentId);
+    if (!component) return;
+
+    setFormData(prev => {
+      const isAlreadySelected = prev.selectedComponents.some(c => c.id === componentId);
+      
+      if (isAlreadySelected) {
+        return {
+          ...prev,
+          selectedComponents: prev.selectedComponents.filter(c => c.id !== componentId)
+        };
+      } else {
+        return {
+          ...prev,
+          selectedComponents: [...prev.selectedComponents, {
+            id: component.id,
+            name: component.name,
+            category: component.category
+          }]
+        };
+      }
+    });
   };
 
   const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    const maxFiles = 5;
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const files = Array.from(e.target.files);
+    setFormData(prev => ({ ...prev, attachments: files }));
+  };
 
-    // Validate file count
-    if (files.length + selectedFiles.length > maxFiles) {
-      alert(`Maximum ${maxFiles} files allowed`);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSubmitting(true);
+
+    // Debug: Log form data
+    console.log('Form data before submission:', formData);
+
+    // Validate title length (backend requires at least 5 characters)
+    if (!formData.title.trim() || formData.title.trim().length < 5) {
+      toast.error('Issue title must be at least 5 characters long');
+      setSubmitting(false);
       return;
     }
 
-    // Validate file sizes
-    const invalidFiles = selectedFiles.filter(file => file.size > maxSize);
-    if (invalidFiles.length > 0) {
-      alert('Some files are larger than 10MB and will be skipped');
-      const validFiles = selectedFiles.filter(file => file.size <= maxSize);
-      setFiles(prev => [...prev, ...validFiles]);
-    } else {
-      setFiles(prev => [...prev, ...selectedFiles]);
-    }
-  };
-
-  const removeFile = (index) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.title.trim()) newErrors.title = 'Please provide a title';
-    if (formData.title.trim().length < 5) newErrors.title = 'Title must be at least 5 characters';
-    if (!formData.description.trim()) newErrors.description = 'Please provide a description';
-    if (formData.description.trim().length < 10) newErrors.description = 'Description must be at least 10 characters';
-    
-    return newErrors;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    const formErrors = validateForm();
-    if (Object.keys(formErrors).length > 0) {
-      setErrors(formErrors);
+    if (formData.description.length < 10) {
+      toast.error('Issue description must be at least 10 characters long');
+      setSubmitting(false);
       return;
     }
 
-    setLoading(true);
+    if (!formData.room) {
+      toast.error('Please select a room');
+      setSubmitting(false);
+      return;
+    }
+
+    if (formData.selectedComponents.length === 0) {
+      toast.error('Please select at least one equipment/component');
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const submitData = new FormData();
-      submitData.append('title', formData.title);
-      submitData.append('description', formData.description);
-      submitData.append('category', formData.category);
+      submitData.append('title', formData.title.trim());
+      submitData.append('description', formData.description.trim());
       submitData.append('priority', formData.priority);
       
-      // Append files
-      files.forEach(file => {
+      // Set room fields according to backend validation expectations
+      submitData.append('room[id]', formData.room);
+      submitData.append('room[name]', `Room ${formData.room}`);
+      submitData.append('room[description]', `${formData.block} Block, Floor ${formData.floor}, Room ${formData.roomNumber}`);
+      
+      // Set components according to backend validation expectations
+      formData.selectedComponents.forEach((component, index) => {
+        submitData.append(`affectedComponents[${index}][id]`, component.id);
+        submitData.append(`affectedComponents[${index}][name]`, component.name);
+        submitData.append(`affectedComponents[${index}][category]`, component.category);
+        submitData.append(`affectedComponents[${index}][count]`, '1');
+      });
+
+      // Add attachments
+      formData.attachments.forEach((file) => {
         submitData.append('attachments', file);
       });
 
-      await issueAPI.create(submitData);
-      
-      // Show success message and navigate back
-      alert('Issue reported successfully! You can track its progress and resolution status in your issues.');
-      navigate('/issues');
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to submit issue';
-      alert(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        staggerChildren: 0.1
+      // Debug: Log FormData contents
+      console.log('FormData contents:');
+      for (let pair of submitData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
       }
-    }
-  };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+      const response = await issueAPI.create(submitData);
+      
+      if (response.data.status === 'success') {
+        toast.success('Issue raised successfully! You can track its status in the issues page.');
+        setFormData(initialState);
+        navigate('/issues');
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      console.error('Error response:', error.response?.data);
+      const message = error.response?.data?.message || 'Failed to submit issue';
+      
+      if (error.response?.data?.errors) {
+        const errorMessages = error.response.data.errors.map(e => `${e.path}: ${e.msg}`).join(', ');
+        toast.error(`Validation failed: ${errorMessages}`);
+      } else {
+        toast.error(message);
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-6"
-      >
-        {/* Header */}
-        <motion.div variants={itemVariants} className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-lg bg-dark-800 hover:bg-dark-700 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-dark-300" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-dark-100">Report an Issue</h1>
-            <p className="text-dark-400 mt-1">Submit an issue or request assistance</p>
+    <div className={`min-h-full ${theme === 'dark' ? 'bg-gray-950' : 'bg-gray-50'}`}>
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-3xl mx-auto"
+        >
+          <div className="mb-8">
+            <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Raise an Issue</h1>
+            <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+              Report equipment issues, maintenance requests, and facility problems.
+            </p>
+          </div>
+
+          <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-sm p-8`}>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Student Information Section */}
+              <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} pb-6 mb-6`}>
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-4`}>Student Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                      Roll Number
+                    </label>
+                    <input
+                      type="text"
+                      className={`input ${theme === 'dark' ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-gray-100 text-gray-800 border-gray-300'}`}
+                      value={user?.rollNumber || ''}
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      className={`input ${theme === 'dark' ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-gray-100 text-gray-800 border-gray-300'}`}
+                      value={user?.name || ''}
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                      Department & Year
+                    </label>
+                    <input
+                      type="text"
+                      className={`input ${theme === 'dark' ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-gray-100 text-gray-800 border-gray-300'}`}
+                      value={user ? `${user.department} - Year ${user.year}` : ''}
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Room Selection Section */}
+              <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} pb-6 mb-6`}>
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-4`}>Classroom Selection</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="block">
+                      Block
+                    </label>
+                    <select
+                      id="block"
+                      name="block"
+                      className="input"
+                      value={formData.block}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Block</option>
+                      {Object.entries(COLLEGE_BLOCKS).map(([block, info]) => (
+                        <option key={block} value={block}>
+                          {info.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="floor">
+                      Floor
+                    </label>
+                    <select
+                      id="floor"
+                      name="floor"
+                      className="input"
+                      value={formData.floor}
+                      onChange={handleChange}
+                      disabled={!formData.block}
+                      required
+                    >
+                      <option value="">Select Floor</option>
+                      {formData.block && COLLEGE_BLOCKS[formData.block]?.floors.map(floor => (
+                        <option key={floor} value={floor}>
+                          Floor {floor}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="roomNumber">
+                      Room Number
+                    </label>
+                    <select
+                      id="roomNumber"
+                      name="roomNumber"
+                      className="input"
+                      value={formData.roomNumber}
+                      onChange={handleChange}
+                      disabled={!formData.floor}
+                      required
+                    >
+                      <option value="">Select Room</option>
+                      {formData.floor && ROOMS_PER_FLOOR[parseInt(formData.floor)]?.map(room => (
+                        <option key={room} value={room}>
+                          Room {room.toString().padStart(2, '0')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                      Room Code
+                    </label>
+                    <div className={`input ${theme === 'dark' ? 'bg-gray-700 text-white border-gray-600' : 'bg-gray-100 text-gray-900 border-gray-300'} font-mono text-lg flex items-center justify-center`}>
+                      {formData.room || 'XXX'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Equipment Selection Section */}
+              {formData.room && (
+                <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} pb-6 mb-6`}>
+                  <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-4`}>
+                    Equipment & Components 
+                    {loadingComponents && <LoadingSpinner size="sm" className="ml-2 inline" />}
+                  </h3>
+                  
+                  {roomComponents.length > 0 ? (
+                    <div className="space-y-4">
+                      <div>
+                        <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                          Select Affected Equipment ({formData.selectedComponents.length} selected)
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {roomComponents.map((component) => {
+                            const isSelected = formData.selectedComponents.some(c => c.id === component.id);
+                            return (
+                              <div 
+                                key={component.id} 
+                                className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                                  isSelected 
+                                    ? 'border-blue-500 bg-blue-900/20 text-blue-300' 
+                                    : theme === 'dark'
+                                    ? 'border-gray-600 hover:border-gray-500 text-gray-300'
+                                    : 'border-gray-300 hover:border-gray-400 text-gray-700'
+                                }`}
+                                onClick={() => handleComponentSelect(component.id)}
+                              >
+                                <div className="flex items-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => handleComponentSelect(component.id)}
+                                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                  />
+                                  <div>
+                                    <span className="font-medium">{component.name}</span>
+                                    <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} block`}>
+                                      Category: {component.category} • Total: {component.count}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Selected Components Display */}
+                      {formData.selectedComponents.length > 0 && (
+                        <div className={`mt-4 p-4 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg`}>
+                          <h4 className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Selected Equipment:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {formData.selectedComponents.map((component) => (
+                              <span 
+                                key={component.id}
+                                className="px-3 py-1 bg-blue-900/30 text-blue-300 rounded-full text-sm flex items-center"
+                              >
+                                {component.name}
+                                <button
+                                  type="button"
+                                  onClick={() => handleComponentSelect(component.id)}
+                                  className="ml-2 text-blue-400 hover:text-blue-200"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : !loadingComponents ? (
+                    <div className={`text-center py-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <p>No equipment data available for this room.</p>
+                      <p className="text-sm mt-1">Please contact the administrator if this seems incorrect.</p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <LoadingSpinner size="md" />
+                      <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-2`}>Loading room equipment...</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Issue Details Section */}
+              <div>
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-4`}>Issue Details</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="title">
+                        Issue Title *
+                      </label>
+                      <input
+                        id="title"
+                        name="title"
+                        type="text"
+                        className="input"
+                        placeholder="Brief summary of the issue"
+                        value={formData.title}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="priority">
+                        Priority Level
+                      </label>
+                      <select
+                        id="priority"
+                        name="priority"
+                        className="input"
+                        value={formData.priority}
+                        onChange={handleChange}
+                        required
+                      >
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="critical">Critical</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="description">
+                      Detailed Description *
+                    </label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      rows="4"
+                      className={`input ${formData.description.length < 10 ? 'border-red-500' : ''}`}
+                      placeholder="Provide detailed description of the issue, including any error messages or symptoms (minimum 10 characters)"
+                      value={formData.description}
+                      onChange={handleChange}
+                      required
+                    />
+                    <p className={`text-sm mt-1 ${
+                      formData.description.length < 10 
+                        ? 'text-red-400' 
+                        : formData.description.length > 1000 
+                        ? 'text-yellow-400' 
+                        : theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      {formData.description.length}/1000 characters {formData.description.length < 10 && '(minimum 10 required)'}
+                    </p>
+                  </div>
+
+                  {/* File Attachments */}
+                  <div>
+                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="attachments">
+                      Attachments (Optional)
+                    </label>
+                    <input
+                      id="attachments"
+                      name="attachments"
+                      type="file"
+                      multiple
+                      accept="image/*,.pdf,.doc,.docx,.txt"
+                      onChange={handleFileChange}
+                      className="input"
+                    />
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+                      Upload images or documents related to the issue (Max 5 files, 10MB each)
+                    </p>
+                    {formData.attachments.length > 0 && (
+                      <div className="mt-2">
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Selected files:</p>
+                        <ul className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} ml-4 list-disc`}>
+                          {formData.attachments.map((file, index) => (
+                            <li key={index}>{file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Section */}
+              <div className={`flex justify-between items-center pt-6 border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <p>• Your issue will be submitted for admin review</p>
+                  <p>• You can track the status in your issues page</p>
+                  <p>• Provide as much detail as possible for faster resolution</p>
+                </div>
+                <button
+                  type="submit"
+                  className="btn btn-primary flex items-center"
+                  disabled={submitting || !formData.room || formData.selectedComponents.length === 0}
+                >
+                  {submitting ? (
+                    <>
+                      <LoadingSpinner size="sm" />
+                      <span className="ml-2">Submitting...</span>
+                    </>
+                  ) : (
+                    'Submit Issue Report'
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </motion.div>
-
-        {/* Form */}
-        <motion.div variants={itemVariants} className="card p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-dark-200 mb-2">
-                <AlertTriangle className="w-4 h-4 inline mr-2" />
-                Issue Title
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                placeholder="Brief description of the issue (e.g., Broken projector in LAB101)"
-                className={`input ${errors.title ? 'border-red-500' : ''}`}
-                maxLength={100}
-              />
-              <p className="text-xs text-dark-500 mt-1">
-                {formData.title.length}/100 characters
-              </p>
-              {errors.title && <p className="text-red-400 text-sm mt-1">{errors.title}</p>}
-            </div>
-
-            {/* Category and Priority */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-dark-200 mb-2">
-                  Category
-                </label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="input"
-                >
-                  {categories.map(category => (
-                    <option key={category.value} value={category.value}>
-                      {category.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-dark-200 mb-2">
-                  Priority
-                </label>
-                <select
-                  name="priority"
-                  value={formData.priority}
-                  onChange={handleInputChange}
-                  className="input"
-                >
-                  {priorities.map(priority => (
-                    <option key={priority.value} value={priority.value}>
-                      {priority.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-dark-200 mb-2">
-                <FileText className="w-4 h-4 inline mr-2" />
-                Detailed Description
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Please provide a detailed description of the issue, including when it occurs, what you were trying to do, and any error messages you received."
-                rows={5}
-                className={`input resize-none ${errors.description ? 'border-red-500' : ''}`}
-                maxLength={1000}
-              />
-              <p className="text-xs text-dark-500 mt-1">
-                {formData.description.length}/1000 characters
-              </p>
-              {errors.description && <p className="text-red-400 text-sm mt-1">{errors.description}</p>}
-            </div>
-
-            {/* File Upload */}
-            <div>
-              <label className="block text-sm font-medium text-dark-200 mb-2">
-                <Upload className="w-4 h-4 inline mr-2" />
-                Attachments (Optional)
-              </label>
-              <div className="space-y-3">
-                <input
-                  type="file"
-                  id="file-upload"
-                  multiple
-                  accept="image/*,.pdf,.doc,.docx,.txt"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <label
-                  htmlFor="file-upload"
-                  className="flex items-center justify-center w-full h-32 border-2 border-dashed border-dark-600 rounded-lg cursor-pointer hover:border-dark-500 transition-colors"
-                >
-                  <div className="text-center">
-                    <Upload className="w-8 h-8 text-dark-400 mx-auto mb-2" />
-                    <p className="text-sm text-dark-300">Click to upload files</p>
-                    <p className="text-xs text-dark-500">Max 5 files, 10MB each</p>
-                  </div>
-                </label>
-
-                {/* File List */}
-                {files.length > 0 && (
-                  <div className="space-y-2">
-                    {files.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-dark-800 rounded-lg">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-dark-200 truncate">{file.name}</p>
-                          <p className="text-xs text-dark-500">
-                            {(file.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeFile(index)}
-                          className="ml-2 p-1 text-red-400 hover:text-red-300"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="flex items-center space-x-4 pt-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn btn-primary flex items-center"
-              >
-                {loading ? (
-                  <>
-                    <LoadingSpinner size="sm" />
-                    <span className="ml-2">Submitting...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 mr-2" />
-                    Submit Issue
-                  </>
-                )}
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="btn btn-secondary"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </motion.div>
-
-        {/* Information Card */}
-        <motion.div variants={itemVariants} className="card p-4 bg-dark-800/50">
-          <h3 className="text-sm font-medium text-dark-200 mb-2">Issue Reporting Guidelines</h3>
-          <ul className="text-xs text-dark-400 space-y-1">
-            <li>• Provide clear and detailed descriptions</li>
-            <li>• Include relevant screenshots or documents when possible</li>
-            <li>• Select appropriate category and priority level</li>
-            <li>• You will receive updates via email and in-app notifications</li>
-            <li>• High and urgent priority issues are addressed first</li>
-          </ul>
-        </motion.div>
-      </motion.div>
+      </div>
     </div>
   );
 };

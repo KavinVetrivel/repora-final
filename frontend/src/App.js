@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Components
 import LoadingSpinner from './components/common/LoadingSpinner';
@@ -51,16 +52,13 @@ const pageTransition = {
   duration: 0.4
 };
 
-function App() {
-  const { isAuthenticated, loading } = useAuth();
+// Create a separate component for the app content
+const AppContent = () => {
+  const { isAuthenticated, loading, initialLoad } = useAuth();
 
-  // Show loading spinner while checking authentication
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-dark-950 flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+  // Show enhanced loading screen during initial app load (minimum 5 seconds)
+  if (initialLoad || loading) {
+    return <LoadingSpinner fullPage={true} />;
   }
 
   return (
@@ -311,9 +309,18 @@ function App() {
       </div>
     </Router>
   );
+};
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
 }
 
 export default App;
+
 
 
 

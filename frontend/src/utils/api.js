@@ -152,6 +152,17 @@ export const usersAPI = {
   getAllUsers: () => api.get('/users/all')
 };
 
+export const roomsAPI = {
+  // Block operations
+  getBlocks: () => api.get('/rooms/blocks'),
+  getBlock: (blockId) => api.get(`/rooms/blocks/${blockId}`),
+  getBlockRooms: (blockId) => api.get(`/rooms/blocks/${blockId}/rooms`),
+  
+  // Room operations
+  getRoom: (roomCode) => api.get(`/rooms/${roomCode}`),
+  getRoomComponents: (roomCode) => api.get(`/rooms/${roomCode}/components`),
+};
+
 // File upload helper
 export const uploadFile = async (file, endpoint, additionalData = {}) => {
   const formData = new FormData();
@@ -194,6 +205,7 @@ export const handleApiError = (error) => {
 };
 
 export default api;
+
 
 
 

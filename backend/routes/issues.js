@@ -169,7 +169,26 @@ router.post('/', authenticateToken, requireStudentOrClassRep, upload.array('atta
   body('priority')
     .optional()
     .isIn(['low', 'medium', 'high', 'urgent'])
-    .withMessage('Invalid priority')
+    .withMessage('Invalid priority'),
+  body('room.id')
+    .trim()
+    .notEmpty()
+    .withMessage('Room ID is required'),
+  body('room.name')
+    .trim()
+    .notEmpty()
+    .withMessage('Room name is required'),
+  body('affectedComponents')
+    .isArray({ min: 1 })
+    .withMessage('At least one affected component must be selected'),
+  body('affectedComponents.*.id')
+    .trim()
+    .notEmpty()
+    .withMessage('Component ID is required'),
+  body('affectedComponents.*.name')
+    .trim()
+    .notEmpty()
+    .withMessage('Component name is required')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -182,7 +201,7 @@ router.post('/', authenticateToken, requireStudentOrClassRep, upload.array('atta
       });
     }
 
-    const { title, description, category = 'other', priority = 'medium' } = req.body;
+    const { title, description, category = 'other', priority = 'medium', room, affectedComponents } = req.body;
 
     // Process uploaded files
     const attachments = [];
@@ -207,6 +226,8 @@ router.post('/', authenticateToken, requireStudentOrClassRep, upload.array('atta
       description,
       category,
       priority,
+      room,
+      affectedComponents,
       attachments
     });
 

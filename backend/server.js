@@ -13,6 +13,7 @@ const issueRoutes = require('./routes/issues');
 const announcementRoutes = require('./routes/announcements');
 const dashboardRoutes = require('./routes/dashboard');
 const userRoutes = require('./routes/users');
+const roomRoutes = require('./routes/rooms');
 
 const app = express();
 
@@ -106,6 +107,7 @@ app.use('/api/issues', issueRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/rooms', roomRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
