@@ -20,7 +20,13 @@ router.post('/register', [
   body('email')
     .isEmail()
     .normalizeEmail()
-    .withMessage('Please provide a valid email'),
+    .custom((value) => {
+      if (!value.endsWith('@psgtech.ac.in')) {
+        throw new Error('Email must be from @psgtech.ac.in domain');
+      }
+      return true;
+    })
+    .withMessage('Please provide a valid @psgtech.ac.in email'),
   body('password')
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters long'),
@@ -119,7 +125,13 @@ router.post('/login', [
   body('email')
     .isEmail()
     .normalizeEmail()
-    .withMessage('Please provide a valid email'),
+    .custom((value) => {
+      if (!value.endsWith('@psgtech.ac.in')) {
+        throw new Error('Email must be from @psgtech.ac.in domain');
+      }
+      return true;
+    })
+    .withMessage('Please provide a valid @psgtech.ac.in email'),
   body('password')
     .notEmpty()
     .withMessage('Password is required')

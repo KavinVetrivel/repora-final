@@ -15,6 +15,19 @@
   html {
     @apply scroll-smooth;
   }
+
+  /* CSS Variables for Toast theming */
+  :root {
+    --toast-bg: #1f2937;
+    --toast-color: #f9fafb;
+    --toast-border: #374151;
+  }
+
+  [data-theme="light"] {
+    --toast-bg: #ffffff;
+    --toast-color: #1f2937;
+    --toast-border: #e5e7eb;
+  }
 }
 
 @layer components {

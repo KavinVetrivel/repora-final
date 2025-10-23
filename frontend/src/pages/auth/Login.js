@@ -324,9 +324,6 @@ const Login = () => {
       }`}>
         <div className="relative z-20">
           <div className="flex items-center gap-2 text-lg font-semibold">
-            <div className="w-8 h-8 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center">
-              <Sparkles className="w-4 h-4" />
-            </div>
             <span>Repora</span>
           </div>
         </div>
@@ -517,13 +514,6 @@ const Login = () => {
         <div className="w-full max-w-[420px]">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 text-lg font-semibold mb-12">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              theme === 'dark' ? 'bg-orange-500/10' : 'bg-orange-100'
-            }`}>
-              <Sparkles className={`w-4 h-4 ${
-                theme === 'dark' ? 'text-orange-400' : 'text-orange-600'
-              }`} />
-            </div>
             <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>Repora</span>
           </div>
 
@@ -583,12 +573,12 @@ const Login = () => {
                 {...register('email', {
                   required: 'Email is required',
                   pattern: {
-                    value: /^\S+@\S+$/i,
-                    message: 'Invalid email address'
+                    value: /^[a-zA-Z0-9._%+-]+@psgtech\.ac\.in$/i,
+                    message: 'Email must be from @psgtech.ac.in domain'
                   }
                 })}
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Enter your @psgtech.ac.in email"
                 onFocus={() => setIsTyping(true)}
                 onBlur={() => setIsTyping(false)}
                 className={`w-full h-12 px-4 rounded-xl border transition-all duration-200 ${

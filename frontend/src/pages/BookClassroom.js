@@ -409,10 +409,16 @@ const BookClassroom = () => {
                     {availabilityStatus && (
                       <div className={`p-4 rounded-lg border ${
                         availabilityStatus.status === 'available' 
-                          ? 'bg-green-900/20 border-green-700 text-green-300'
+                          ? theme === 'dark' 
+                            ? 'bg-green-900/30 border-green-600 text-green-100'
+                            : 'bg-green-50 border-green-300 text-green-800'
                           : availabilityStatus.status === 'occupied'
-                          ? 'bg-red-900/20 border-red-700 text-red-300' 
-                          : 'bg-yellow-900/20 border-yellow-700 text-yellow-300'
+                          ? theme === 'dark'
+                            ? 'bg-red-900/30 border-red-600 text-red-100'
+                            : 'bg-red-50 border-red-300 text-red-800'
+                          : theme === 'dark'
+                            ? 'bg-yellow-900/30 border-yellow-600 text-yellow-100'
+                            : 'bg-yellow-50 border-yellow-300 text-yellow-800'
                       }`}>
                         <div className="flex items-center mb-2">
                           {availabilityStatus.status === 'available' ? (
@@ -422,25 +428,25 @@ const BookClassroom = () => {
                           ) : (
                             <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
                           )}
-                          <span className="font-medium">
+                          <span className="font-bold text-lg">
                             {availabilityStatus.status === 'available' ? 'Available' : 
                              availabilityStatus.status === 'occupied' ? 'Not Available' : 'Status Unknown'}
                           </span>
                         </div>
-                        <p className="text-sm">{availabilityStatus.message}</p>
+                        <p className="text-sm font-medium">{availabilityStatus.message}</p>
                         
                         {availabilityStatus.conflictingBooking && (
-                          <div className={`mt-3 p-3 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg`}>
-                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Conflicting booking:</p>
-                            <p className="text-sm">
-                              <span className="font-medium">{availabilityStatus.conflictingBooking.studentName}</span> 
+                          <div className={`mt-3 p-3 ${theme === 'dark' ? 'bg-gray-700/50 border border-gray-600' : 'bg-white border border-gray-300'} rounded-lg`}>
+                            <p className={`text-sm font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-2`}>Conflicting booking:</p>
+                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
+                              <span className="font-bold">{availabilityStatus.conflictingBooking.studentName}</span> 
                               {' '}({availabilityStatus.conflictingBooking.studentRollNumber})
                             </p>
-                            <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                            <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
                               {availabilityStatus.conflictingBooking.startTime} - {availabilityStatus.conflictingBooking.endTime}
                             </p>
-                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} capitalize`}>
-                              Status: {availabilityStatus.conflictingBooking.status}
+                            <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} capitalize`}>
+                              Status: <span className="font-bold">{availabilityStatus.conflictingBooking.status}</span>
                             </p>
                           </div>
                         )}
@@ -450,27 +456,33 @@ const BookClassroom = () => {
                     {/* Show existing bookings for the day */}
                     {existingBookings.length > 0 && (
                       <div className="mt-4">
-                        <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                        <p className={`text-sm font-bold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} mb-3`}>
                           Other bookings for {formData.room} on this day:
                         </p>
                         <div className="space-y-2 max-h-32 overflow-y-auto">
                           {existingBookings.map(booking => (
-                            <div key={booking._id} className={`p-2 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} rounded text-sm`}>
+                            <div key={booking._id} className={`p-3 ${theme === 'dark' ? 'bg-gray-700 border border-gray-600' : 'bg-gray-50 border border-gray-300'} rounded-lg text-sm`}>
                               <div className="flex justify-between items-center">
-                                <span>
+                                <span className={`font-semibold ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
                                   {booking.startTime} - {booking.endTime}
                                 </span>
-                                <span className={`px-2 py-1 rounded-full text-xs ${
+                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                                   booking.status === 'approved' 
-                                    ? 'bg-green-900 text-green-300'
+                                    ? theme === 'dark'
+                                      ? 'bg-green-800 text-green-100'
+                                      : 'bg-green-100 text-green-800'
                                     : booking.status === 'pending'
-                                    ? 'bg-yellow-900 text-yellow-300'
-                                    : 'bg-red-900 text-red-300'
+                                    ? theme === 'dark'
+                                      ? 'bg-yellow-800 text-yellow-100'
+                                      : 'bg-yellow-100 text-yellow-800'
+                                    : theme === 'dark'
+                                      ? 'bg-red-800 text-red-100'
+                                      : 'bg-red-100 text-red-800'
                                 }`}>
-                                  {booking.status}
+                                  {booking.status.toUpperCase()}
                                 </span>
                               </div>
-                              <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-xs mt-1`}>
+                              <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} text-sm font-medium mt-1`}>
                                 {booking.studentName} ({booking.studentRollNumber})
                               </p>
                             </div>

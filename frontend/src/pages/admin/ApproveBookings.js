@@ -4,9 +4,11 @@ import { Calendar, User, Clock, MapPin, FileText, Check, X, Search } from 'lucid
 import { bookingAPI } from '../../utils/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useNotification } from '../../contexts/NotificationContext';
 
 const ApproveBookings = () => {
   const { theme } = useTheme();
+  const { success, error } = useNotification();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState({});
@@ -22,9 +24,15 @@ const ApproveBookings = () => {
   });
 
   const statusColors = {
-    pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    approved: 'bg-green-500/20 text-green-400 border-green-500/30',
-    rejected: 'bg-red-500/20 text-red-400 border-red-500/30'
+    pending: theme === 'dark' 
+      ? 'bg-yellow-900/30 text-yellow-100 border-yellow-600' 
+      : 'bg-yellow-50 text-yellow-800 border-yellow-300',
+    approved: theme === 'dark' 
+      ? 'bg-green-900/30 text-green-100 border-green-600' 
+      : 'bg-green-50 text-green-800 border-green-300',
+    rejected: theme === 'dark' 
+      ? 'bg-red-900/30 text-red-100 border-red-600' 
+      : 'bg-red-50 text-red-800 border-red-300'
   };
 
   const parseRoomCode = (roomCode) => {
@@ -70,7 +78,7 @@ const ApproveBookings = () => {
       setPagination(response.data.data.pagination || { current: 1, pages: 1, total: 0 });
       } catch (error) {
         console.error('Error fetching bookings:', error);
-        alert('Failed to fetch bookings');
+        error('Failed to fetch bookings', { title: 'Loading Error' });
       } finally {
         setLoading(false);
       }
@@ -95,7 +103,7 @@ const ApproveBookings = () => {
       setPagination(response.data.data.pagination || { current: 1, pages: 1, total: 0 });
       } catch (error) {
       console.error('Error fetching bookings:', error);
-      alert('Failed to fetch bookings');
+      error('Failed to fetch bookings', { title: 'Loading Error' });
     }
   };
 
@@ -113,29 +121,30 @@ const ApproveBookings = () => {
       
       // Refresh the bookings list
       await refetchBookings();
-      alert(`Booking ${action}d successfully`);
+      
+      const actionText = action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : `${action}d`;
+      success(`Booking ${actionText} successfully!`, {
+        title: action === 'approve' ? 'Booking Approved' : 'Booking Rejected',
+        duration: 3000
+      });
     } catch (error) {
       const message = error.response?.data?.message || `Failed to ${action} booking`;
-      alert(message);
+      error(message, { title: 'Update Failed' });
     } finally {
       setProcessing(prev => ({ ...prev, [bookingId]: false }));
     }
   };
 
-  const handleApprove = (bookingId) => {
-    const notes = prompt('Add approval notes (optional):');
-    if (notes !== null) { // User didn't cancel
-      handleStatusUpdate(bookingId, 'approve', notes);
-    }
+  const handleApprove = async (bookingId) => {
+    // For now, use an empty string for notes - we can enhance this later with a modal
+    const notes = '';
+    await handleStatusUpdate(bookingId, 'approve', notes);
   };
 
-  const handleReject = (bookingId) => {
-    const notes = prompt('Add rejection reason:');
-    if (notes) {
-      handleStatusUpdate(bookingId, 'reject', notes);
-    } else if (notes !== null) {
-      alert('Please provide a reason for rejection');
-    }
+  const handleReject = async (bookingId) => {
+    // For now, use a default rejection reason - we can enhance this later with a modal  
+    const notes = 'Booking rejected by admin';
+    await handleStatusUpdate(bookingId, 'reject', notes);
   };
 
   const formatDate = (dateString) => {
@@ -258,7 +267,7 @@ const ApproveBookings = () => {
                           </p>
                         </div>
                       </div>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${statusColors[booking.status]} capitalize`}>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold border ${statusColors[booking.status]} capitalize`}>
                         {booking.status}
                       </span>
                     </div>

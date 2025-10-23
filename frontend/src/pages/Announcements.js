@@ -4,11 +4,13 @@ import { Megaphone, Plus, Search, Pin, Calendar, User, Eye, Trash2 } from 'lucid
 import { announcementAPI } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useNotification } from '../contexts/NotificationContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const Announcements = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const { success, error, confirm } = useNotification();
   const isAdmin = user?.role === 'admin';
   
   const [announcements, setAnnouncements] = useState([]);
@@ -81,7 +83,7 @@ const Announcements = () => {
       setAnnouncements(response.data.data.announcements || []);
     } catch (error) {
       console.error('Error fetching announcements:', error);
-      alert('Failed to fetch announcements');
+      error('Failed to fetch announcements', { title: 'Loading Error' });
       setAnnouncements([]);
     } finally {
       setLoading(false);
@@ -92,7 +94,7 @@ const Announcements = () => {
     e.preventDefault();
     
     if (!newAnnouncement.title.trim() || !newAnnouncement.content.trim()) {
-      alert('Please fill in all required fields');
+      error('Please fill in all required fields', { title: 'Validation Error' });
       return;
     }
 
@@ -109,10 +111,13 @@ const Announcements = () => {
         isPinned: false
       });
       await fetchAnnouncements();
-      alert('Announcement created successfully');
+      success('Announcement created successfully!', { 
+        title: 'Success', 
+        duration: 4000 
+      });
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to create announcement';
-      alert(message);
+      error(message, { title: 'Creation Failed' });
     } finally {
       setProcessing(prev => ({ ...prev, create: false }));
     }
@@ -128,7 +133,7 @@ const Announcements = () => {
       await fetchAnnouncements();
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to toggle pin status';
-      alert(message);
+      error(message, { title: 'Update Failed' });
     } finally {
       setProcessing(prev => ({ ...prev, [announcementId]: false }));
     }
@@ -137,19 +142,29 @@ const Announcements = () => {
   const handleDeleteAnnouncement = async (announcementId, title) => {
     if (processing[announcementId]) return;
     
-    if (!window.confirm(`Are you sure you want to delete "${title}"?`)) {
-      return;
-    }
+    const confirmed = await confirm(
+      `Are you sure you want to delete "${title}"? This action cannot be undone.`,
+      { 
+        title: 'Delete Announcement',
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel'
+      }
+    );
+    
+    if (!confirmed) return;
     
     setProcessing(prev => ({ ...prev, [announcementId]: true }));
     
     try {
       await announcementAPI.delete(announcementId);
       await fetchAnnouncements();
-      alert('Announcement deleted successfully');
+      success('Announcement deleted successfully!', { 
+        title: 'Deleted',
+        duration: 3000 
+      });
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to delete announcement';
-      alert(message);
+      error(message, { title: 'Deletion Failed' });
     } finally {
       setProcessing(prev => ({ ...prev, [announcementId]: false }));
     }

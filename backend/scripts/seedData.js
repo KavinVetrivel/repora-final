@@ -30,7 +30,7 @@ const seedData = async () => {
     const adminUser = new User({
       rollNumber: 'ADMIN001',
       name: 'Admin User',
-      email: 'admin@repora.com',
+      email: 'admin@psgtech.ac.in',
       password: 'admin123',
       role: 'admin',
       department: 'Administration',
@@ -47,7 +47,7 @@ const seedData = async () => {
       {
         rollNumber: 'CS2023001',
         name: 'Alice Johnson',
-        email: 'alice.johnson@student.edu',
+        email: 'alice.johnson@psgtech.ac.in',
         password: 'student123',
         department: 'Computer Science',
         year: '2nd',
@@ -56,7 +56,7 @@ const seedData = async () => {
       {
         rollNumber: 'CS2023002',
         name: 'Bob Smith',
-        email: 'bob.smith@student.edu',
+        email: 'bob.smith@psgtech.ac.in',
         password: 'student123',
         department: 'Computer Science',
         year: '3rd',
@@ -65,7 +65,7 @@ const seedData = async () => {
       {
         rollNumber: 'EE2023001',
         name: 'Charlie Brown',
-        email: 'charlie.brown@student.edu',
+        email: 'charlie.brown@psgtech.ac.in',
         password: 'student123',
         department: 'Electrical Engineering',
         year: '1st',
@@ -74,7 +74,7 @@ const seedData = async () => {
       {
         rollNumber: 'ME2023001',
         name: 'Diana Prince',
-        email: 'diana.prince@student.edu',
+        email: 'diana.prince@psgtech.ac.in',
         password: 'student123',
         department: 'Mechanical Engineering',
         year: '4th',
@@ -83,7 +83,7 @@ const seedData = async () => {
       {
         rollNumber: 'CS2023003',
         name: 'Eve Wilson',
-        email: 'eve.wilson@student.edu',
+        email: 'eve.wilson@psgtech.ac.in',
         password: 'student123',
         department: 'Computer Science',
         year: '2nd',
@@ -177,6 +177,17 @@ const seedData = async () => {
       'Several chairs and tables in the study hall are broken and need replacement.'
     ];
 
+    const roomOptions = [
+      { id: 'LIB001', name: 'Library', description: 'Main Library Building' },
+      { id: 'LAB101', name: 'Computer Lab 1', description: 'Computer Science Lab' },
+      { id: 'AUD001', name: 'Main Auditorium', description: 'Main Event Auditorium' },
+      { id: 'CONF01', name: 'Conference Room', description: 'Meeting Room' },
+      { id: 'LAB201', name: 'Computer Lab 2', description: 'Secondary Computer Lab' },
+      { id: 'HST001', name: 'Hostel Block A', description: 'Student Hostel' },
+      { id: 'LAB301', name: 'Electrical Lab', description: 'Electrical Engineering Lab' },
+      { id: 'STDY01', name: 'Study Hall', description: 'Common Study Area' }
+    ];
+
     const categories = ['infrastructure', 'academic', 'hostel', 'other'];
     const priorities = ['low', 'medium', 'high', 'urgent'];
     const statuses = ['open', 'in-progress', 'resolved'];
@@ -186,6 +197,7 @@ const seedData = async () => {
       const student = createdStudents[Math.floor(Math.random() * createdStudents.length)];
       const title = issueTitles[Math.floor(Math.random() * issueTitles.length)];
       const description = issueDescriptions[Math.floor(Math.random() * issueDescriptions.length)];
+      const room = roomOptions[Math.floor(Math.random() * roomOptions.length)];
       const category = categories[Math.floor(Math.random() * categories.length)];
       const priority = priorities[Math.floor(Math.random() * priorities.length)];
       const status = statuses[Math.floor(Math.random() * statuses.length)];
@@ -196,6 +208,18 @@ const seedData = async () => {
         studentName: student.name,
         title,
         description,
+        room: {
+          id: room.id,
+          name: room.name,
+          description: room.description
+        },
+        affectedComponents: [{
+          id: 'COMP001',
+          name: 'General Equipment',
+          category: 'infrastructure',
+          count: 1,
+          specificItems: []
+        }],
         category,
         priority,
         status,
@@ -274,9 +298,9 @@ const seedData = async () => {
     console.log(`📢 Announcements: ${sampleAnnouncements.length}`);
     
     console.log('\n🔑 Test Credentials:');
-    console.log('Admin: admin@repora.com / admin123');
-    console.log('Student: alice.johnson@student.edu / student123');
-    console.log('Student: bob.smith@student.edu / student123');
+    console.log('Admin: admin@psgtech.ac.in / admin123');
+    console.log('Student: alice.johnson@psgtech.ac.in / student123');
+    console.log('Student: bob.smith@psgtech.ac.in / student123');
 
   } catch (error) {
     console.error('❌ Error creating seed data:', error);

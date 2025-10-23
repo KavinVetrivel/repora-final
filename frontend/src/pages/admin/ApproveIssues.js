@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, User, Clock, FileText, Check, X, Search, Eye } from 'lucide-react';
+import { AlertTriangle, User, Calendar, MapPin, Search, Check, X, Clock, FileText, Eye } from 'lucide-react';
 import { issueAPI } from '../../utils/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useNotification } from '../../contexts/NotificationContext';
 
 const ApproveIssues = () => {
   const { theme } = useTheme();
+  const { success, error } = useNotification();
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState({});
@@ -66,7 +68,7 @@ const ApproveIssues = () => {
         setPagination(response.data.data.pagination || { current: 1, pages: 1, total: 0 });
       } catch (error) {
         console.error('Error fetching issues:', error);
-        alert('Failed to fetch issues');
+        error('Failed to fetch issues', { title: 'Loading Error' });
       } finally {
         setLoading(false);
       }
@@ -92,7 +94,7 @@ const ApproveIssues = () => {
       setPagination(response.data.data.pagination || { current: 1, pages: 1, total: 0 });
     } catch (error) {
       console.error('Error fetching issues:', error);
-      alert('Failed to fetch issues');
+      error('Failed to fetch issues', { title: 'Loading Error' });
     }
   };
 
@@ -112,29 +114,30 @@ const ApproveIssues = () => {
       
       // Refresh the issues list
       await refetchIssues();
-      alert(`Issue ${action}d successfully`);
+      
+      const actionText = action === 'resolve' ? 'resolved' : action === 'reject' ? 'rejected' : `${action}d`;
+      success(`Issue ${actionText} successfully!`, {
+        title: action === 'resolve' ? 'Issue Resolved' : action === 'reject' ? 'Issue Rejected' : `Issue ${action.charAt(0).toUpperCase() + action.slice(1)}`,
+        duration: 3000
+      });
     } catch (error) {
       const message = error.response?.data?.message || `Failed to ${action} issue`;
-      alert(message);
+      error(message, { title: 'Update Failed' });
     } finally {
       setProcessing(prev => ({ ...prev, [issueId]: false }));
     }
   };
 
-  const handleResolve = (issueId) => {
-    const notes = prompt('Add resolution notes (optional):');
-    if (notes !== null) { // User didn't cancel
-      handleStatusUpdate(issueId, 'resolve', notes);
-    }
+  const handleResolve = async (issueId) => {
+    // For now, use an empty string for notes - we can enhance this later with a modal
+    const notes = '';
+    await handleStatusUpdate(issueId, 'resolve', notes);
   };
 
-  const handleReject = (issueId) => {
-    const notes = prompt('Add rejection reason:');
-    if (notes) {
-      handleStatusUpdate(issueId, 'reject', notes);
-    } else if (notes !== null) {
-      alert('Please provide a reason for rejection');
-    }
+  const handleReject = async (issueId) => {
+    // For now, use a default rejection reason - we can enhance this later with a modal
+    const notes = 'Issue rejected by admin';
+    await handleStatusUpdate(issueId, 'reject', notes);
   };
 
   const handleInProgress = (issueId) => {

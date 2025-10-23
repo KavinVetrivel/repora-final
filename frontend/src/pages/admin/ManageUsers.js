@@ -5,10 +5,12 @@ import { usersAPI } from '../../utils/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotification } from '../../contexts/NotificationContext';
 
 const ManageUsers = () => {
   const { theme } = useTheme();
   const { user: currentUser } = useAuth();
+  const { success, error, confirm } = useNotification();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState({});
@@ -71,7 +73,7 @@ const ManageUsers = () => {
         setPagination(response.data.data.pagination || { current: 1, pages: 1, total: 0 });
       } catch (error) {
         console.error('Error fetching users:', error);
-        alert('Failed to fetch users');
+        error('Failed to fetch users', { title: 'Loading Error' });
       } finally {
         setLoading(false);
       }
@@ -100,7 +102,7 @@ const ManageUsers = () => {
       setPagination(response.data.data.pagination || { current: 1, pages: 1, total: 0 });
     } catch (error) {
       console.error('Error fetching users:', error);
-      alert('Failed to fetch users');
+      error('Failed to fetch users', { title: 'Loading Error' });
     }
   };
 
@@ -137,10 +139,13 @@ const ManageUsers = () => {
       setFormErrors({});
       setShowAddForm(false);
       await refetchUsers();
-      alert('User created successfully');
+      success('User created successfully!', { 
+        title: 'User Created',
+        duration: 4000 
+      });
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to create user';
-      alert(message);
+      error(message, { title: 'Creation Failed' });
     } finally {
       setProcessing(prev => ({ ...prev, add: false }));
     }
@@ -162,11 +167,14 @@ const ManageUsers = () => {
       
       // Refresh the users list
       await refetchUsers();
-      alert(`User ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
+      success(`User ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`, {
+        title: 'Status Updated',
+        duration: 3000
+      });
     } catch (error) {
       console.error('Status update error:', error);
       const message = error.response?.data?.message || 'Failed to update user status';
-      alert(message);
+      error(message, { title: 'Update Failed' });
     } finally {
       setProcessing(prev => ({ ...prev, [userId]: false }));
     }
@@ -177,15 +185,25 @@ const ManageUsers = () => {
     
     // Prevent self-deletion
     if (currentUser && currentUser._id === userId) {
-      alert('You cannot delete your own account');
+      error('You cannot delete your own account', { 
+        title: 'Action Not Allowed',
+        duration: 4000 
+      });
       return;
     }
     
     console.log('Delete user request:', { userId, userName });
     
-    if (!window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
-      return;
-    }
+    const confirmed = await confirm(
+      `Are you sure you want to delete user "${userName}"? This action cannot be undone.`,
+      {
+        title: 'Delete User',
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel'
+      }
+    );
+    
+    if (!confirmed) return;
     
     setProcessing(prev => ({ ...prev, [userId]: true }));
     
@@ -197,11 +215,14 @@ const ManageUsers = () => {
       
       // Refresh the users list
       await refetchUsers();
-      alert('User deleted successfully');
+      success('User deleted successfully!', {
+        title: 'User Deleted',
+        duration: 3000
+      });
     } catch (error) {
       console.error('Delete user error:', error);
       const message = error.response?.data?.message || 'Failed to delete user';
-      alert(message);
+      error(message, { title: 'Deletion Failed' });
     } finally {
       setProcessing(prev => ({ ...prev, [userId]: false }));
     }

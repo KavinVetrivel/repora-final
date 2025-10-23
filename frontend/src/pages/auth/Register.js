@@ -263,8 +263,8 @@ const Register = () => {
                   {...register('email', {
                     required: 'Email is required',
                     pattern: {
-                      value: /^\S+@\S+$/i,
-                      message: 'Invalid email address'
+                      value: /^[a-zA-Z0-9._%+-]+@psgtech\.ac\.in$/i,
+                      message: 'Email must be from @psgtech.ac.in domain'
                     }
                   })}
                   type="email"
@@ -277,7 +277,7 @@ const Register = () => {
                         ? 'border-gray-700 bg-gray-800/50 text-white focus:border-orange-400 focus:bg-gray-800'
                         : 'border-gray-200 bg-white text-gray-900 focus:border-orange-300 focus:ring-2 focus:ring-orange-100'
                   }`}
-                  placeholder="Enter your email"
+                  placeholder="Enter your @psgtech.ac.in email"
                 />
               </div>
               {errors.email && (

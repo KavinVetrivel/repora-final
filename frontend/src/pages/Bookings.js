@@ -62,19 +62,25 @@ const Bookings = () => {
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: {
-        color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+        color: theme === 'dark' 
+          ? 'bg-yellow-900/30 text-yellow-100 border-yellow-600' 
+          : 'bg-yellow-50 text-yellow-800 border-yellow-300',
         icon: Clock3,
         text: 'Pending Approval',
         bgColor: 'bg-yellow-900/20'
       },
       approved: {
-        color: 'bg-green-500/20 text-green-400 border-green-500/30',
+        color: theme === 'dark' 
+          ? 'bg-green-900/30 text-green-100 border-green-600' 
+          : 'bg-green-50 text-green-800 border-green-300',
         icon: CheckCircle,
         text: 'Approved',
         bgColor: 'bg-green-900/20'
       },
       rejected: {
-        color: 'bg-red-500/20 text-red-400 border-red-500/30',
+        color: theme === 'dark' 
+          ? 'bg-red-900/30 text-red-100 border-red-600' 
+          : 'bg-red-50 text-red-800 border-red-300',
         icon: XCircle,
         text: 'Rejected',
         bgColor: 'bg-red-900/20'
@@ -85,7 +91,7 @@ const Bookings = () => {
     const IconComponent = config.icon;
 
     return (
-      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${config.color}`}>
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold border ${config.color}`}>
         <IconComponent className="w-4 h-4 mr-1" />
         {config.text}
       </span>

@@ -22,7 +22,14 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+    validate: {
+      validator: function(email) {
+        // Check if email is valid format and from PSG Tech domain
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@psgtech\.ac\.in$/i;
+        return emailRegex.test(email);
+      },
+      message: 'Email must be a valid @psgtech.ac.in address'
+    }
   },
   password: {
     type: String,
