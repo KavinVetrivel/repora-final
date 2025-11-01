@@ -1,58 +1,41 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Verify JWT token
+// Verify JWT token (default export as a function to satisfy tests)
 const authenticateToken = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-
-    if (!token) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Access token is required'
-      });
+    // Tests use req.header('Authorization'), support both header access patterns
+    const rawHeader = typeof req.header === 'function' ? req.header('Authorization') : (req.headers && req.headers.authorization);
+    if (!rawHeader || !rawHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'No token, authorization denied' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select('-password');
-    
-    if (!user) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid token - user not found'
-      });
+    const token = rawHeader.split(' ')[1];
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: 'Token is not valid' });
     }
 
-    if (!user.isActive) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Account is deactivated'
-      });
-    }
+    try {
+      const user = await User.findById(decoded.userId);
+      if (!user) {
+        return res.status(401).json({ message: 'Token is not valid' });
+      }
 
-    req.user = user;
-    next();
+      // Optional: enforce active accounts
+      if (user.isActive === false) {
+        return res.status(401).json({ message: 'Token is not valid' });
+      }
+
+      req.user = user;
+      return next();
+    } catch (dbErr) {
+      return res.status(500).json({ message: 'Server error' });
+    }
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid token'
-      });
-    }
-    
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Token has expired'
-      });
-    }
-
-    console.error('Auth middleware error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Authentication failed'
-    });
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -142,12 +125,13 @@ const checkResourceAccess = (resourceUserIdField = 'studentId') => {
   };
 };
 
-module.exports = {
-  authenticateToken,
-  requireAdmin,
-  requireStudent,
-  requireStudentOrClassRep,
-  optionalAuth,
-  generateToken,
-  checkResourceAccess
-};
+// Dual export strategy: default is the middleware function (for tests)
+// and named properties for route imports in the app
+module.exports = authenticateToken;
+module.exports.authenticateToken = authenticateToken;
+module.exports.requireAdmin = requireAdmin;
+module.exports.requireStudent = requireStudent;
+module.exports.requireStudentOrClassRep = requireStudentOrClassRep;
+module.exports.optionalAuth = optionalAuth;
+module.exports.generateToken = generateToken;
+module.exports.checkResourceAccess = checkResourceAccess;

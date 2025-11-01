@@ -32,7 +32,7 @@ router.post('/register', [
     .withMessage('Password must be at least 6 characters long'),
   body('department')
     .optional()
-    .isIn(['Computer Science', 'Mechanical Engineering', 'Information Technology', 'Civil Engineering'])
+    .isIn(['Computer Science', 'Mechanical Engineering', 'Information Technology', 'Civil Engineering', 'Administration'])
     .withMessage('Invalid department selected'),
   body('year')
     .optional()
@@ -82,8 +82,8 @@ router.post('/register', [
       return res.status(400).json({
         status: 'error',
         message: existingUser.email === email 
-          ? 'Email already registered' 
-          : 'Roll number already registered'
+          ? 'Email already exists' 
+          : 'Roll number already exists'
       });
     }
 
@@ -362,4 +362,6 @@ router.put('/change-password', authenticateToken, [
   }
 });
 
+// Export both default router and a named export for tests
 module.exports = router;
+module.exports.authAPI = router;

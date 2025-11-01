@@ -6,12 +6,13 @@ describe('User Model', () => {
     test('should create a user with valid data', async () => {
       const userData = {
         name: 'Test User',
-        email: 'test@example.com',
-        password: 'hashedpassword123',
+        email: 'test@psgtech.ac.in',
+        password: 'password123',
         rollNumber: 'CS001',
         department: 'Computer Science',
-        year: 2,
-        role: 'student'
+        year: '2nd',
+        role: 'student',
+        className: 'G1'
       };
 
       const user = new User(userData);
@@ -21,14 +22,15 @@ describe('User Model', () => {
       expect(savedUser.name).toBe(userData.name);
       expect(savedUser.email).toBe(userData.email);
       expect(savedUser.rollNumber).toBe(userData.rollNumber);
-      expect(savedUser.status).toBe('pending'); // Default status
+      expect(savedUser.isActive).toBe(true);
+      expect(savedUser.isApproved).toBe(true); // students auto-approved
       expect(savedUser.createdAt).toBeDefined();
     });
 
     test('should fail to create user without required fields', async () => {
       const userData = {
         name: 'Test User',
-        email: 'test@example.com'
+        email: 'test@psgtech.ac.in'
         // Missing required fields
       };
 
@@ -45,15 +47,16 @@ describe('User Model', () => {
       expect(error.name).toBe('ValidationError');
     });
 
-    test('should fail to create user with duplicate email', async () => {
+  test('should fail to create user with duplicate email', async () => {
       const userData = {
         name: 'Test User',
-        email: 'test@example.com',
-        password: 'hashedpassword123',
+        email: 'test@psgtech.ac.in',
+        password: 'password123',
         rollNumber: 'CS001',
         department: 'Computer Science',
-        year: 2,
-        role: 'student'
+        year: '2nd',
+        role: 'student',
+        className: 'G1'
       };
 
       // Create first user
@@ -63,6 +66,7 @@ describe('User Model', () => {
       // Try to create second user with same email
       const user2 = new User({
         ...userData,
+        email: 'test@psgtech.ac.in', // duplicate email
         rollNumber: 'CS002'
       });
 
@@ -80,22 +84,24 @@ describe('User Model', () => {
     test('should fail to create user with duplicate roll number', async () => {
       const userData1 = {
         name: 'Test User 1',
-        email: 'test1@example.com',
-        password: 'hashedpassword123',
+        email: 'test1@psgtech.ac.in',
+        password: 'password123',
         rollNumber: 'CS001',
         department: 'Computer Science',
-        year: 2,
-        role: 'student'
+        year: '2nd',
+        role: 'student',
+        className: 'G1'
       };
 
       const userData2 = {
         name: 'Test User 2',
-        email: 'test2@example.com',
-        password: 'hashedpassword123',
+        email: 'test2@psgtech.ac.in',
+        password: 'password123',
         rollNumber: 'CS001', // Same roll number
         department: 'Computer Science',
-        year: 2,
-        role: 'student'
+        year: '2nd',
+        role: 'student',
+        className: 'G2'
       };
 
       // Create first user
@@ -120,11 +126,12 @@ describe('User Model', () => {
       const userData = {
         name: 'Test User',
         email: 'invalid-email', // Invalid email format
-        password: 'hashedpassword123',
+        password: 'password123',
         rollNumber: 'CS001',
         department: 'Computer Science',
-        year: 2,
-        role: 'student'
+        year: '2nd',
+        role: 'student',
+        className: 'G1'
       };
 
       const user = new User(userData);
@@ -144,12 +151,13 @@ describe('User Model', () => {
     test('should validate year range', async () => {
       const userData = {
         name: 'Test User',
-        email: 'test@example.com',
-        password: 'hashedpassword123',
+        email: 'test@psgtech.ac.in',
+        password: 'password123',
         rollNumber: 'CS001',
         department: 'Computer Science',
-        year: 5, // Invalid year (should be 1-4)
-        role: 'student'
+        year: '6th', // Invalid year (outside enum)
+        role: 'student',
+        className: 'G1'
       };
 
       const user = new User(userData);
@@ -169,12 +177,13 @@ describe('User Model', () => {
     test('should validate role enum', async () => {
       const userData = {
         name: 'Test User',
-        email: 'test@example.com',
-        password: 'hashedpassword123',
+        email: 'test@psgtech.ac.in',
+        password: 'password123',
         rollNumber: 'CS001',
         department: 'Computer Science',
-        year: 2,
-        role: 'invalid-role' // Invalid role
+        year: '2nd',
+        role: 'invalid-role', // Invalid role
+        className: 'G1'
       };
 
       const user = new User(userData);
@@ -191,43 +200,20 @@ describe('User Model', () => {
       expect(error.errors.role).toBeDefined();
     });
 
-    test('should validate status enum', async () => {
-      const userData = {
-        name: 'Test User',
-        email: 'test@example.com',
-        password: 'hashedpassword123',
-        rollNumber: 'CS001',
-        department: 'Computer Science',
-        year: 2,
-        role: 'student',
-        status: 'invalid-status' // Invalid status
-      };
-
-      const user = new User(userData);
-      
-      let error;
-      try {
-        await user.save();
-      } catch (err) {
-        error = err;
-      }
-
-      expect(error).toBeDefined();
-      expect(error.name).toBe('ValidationError');
-      expect(error.errors.status).toBeDefined();
-    });
+    // Status enum removed in current model; using isApproved/isActive booleans
   });
 
   describe('User methods', () => {
     test('should return user without password in JSON', async () => {
       const userData = {
         name: 'Test User',
-        email: 'test@example.com',
-        password: 'hashedpassword123',
+        email: 'test@psgtech.ac.in',
+        password: 'password123',
         rollNumber: 'CS001',
         department: 'Computer Science',
-        year: 2,
-        role: 'student'
+        year: '2nd',
+        role: 'student',
+        className: 'G1'
       };
 
       const user = new User(userData);
@@ -247,43 +233,45 @@ describe('User Model', () => {
       const users = [
         {
           name: 'Student 1',
-          email: 'student1@example.com',
-          password: 'hashedpassword123',
+          email: 'student1@psgtech.ac.in',
+          password: 'password123',
           rollNumber: 'CS001',
           department: 'Computer Science',
-          year: 2,
+          year: '2nd',
           role: 'student',
-          status: 'approved'
+          className: 'G1',
+          isApproved: true
         },
         {
           name: 'Student 2',
-          email: 'student2@example.com',
-          password: 'hashedpassword123',
+          email: 'student2@psgtech.ac.in',
+          password: 'password123',
           rollNumber: 'CS002',
           department: 'Computer Science',
-          year: 3,
+          year: '3rd',
           role: 'student',
-          status: 'pending'
+          className: 'G2',
+          isApproved: false
         },
         {
           name: 'CR 1',
-          email: 'cr1@example.com',
-          password: 'hashedpassword123',
+          email: 'cr1@psgtech.ac.in',
+          password: 'password123',
           rollNumber: 'CS003',
           department: 'Computer Science',
-          year: 2,
-          role: 'class_representative',
-          status: 'approved'
+          year: '2nd',
+          role: 'class-representative',
+          className: 'G1',
+          isApproved: true
         },
         {
           name: 'Admin 1',
-          email: 'admin1@example.com',
-          password: 'hashedpassword123',
+          email: 'admin1@psgtech.ac.in',
+          password: 'password123',
           rollNumber: 'ADMIN001',
           department: 'Administration',
-          year: 1,
-          role: 'admin',
-          status: 'approved'
+          year: '1st',
+          role: 'admin'
         }
       ];
 
@@ -291,9 +279,9 @@ describe('User Model', () => {
     });
 
     test('should find users by role', async () => {
-      const students = await User.find({ role: 'student' });
-      const crs = await User.find({ role: 'class_representative' });
-      const admins = await User.find({ role: 'admin' });
+  const students = await User.find({ role: 'student' });
+  const crs = await User.find({ role: 'class-representative' });
+  const admins = await User.find({ role: 'admin' });
 
       expect(students).toHaveLength(2);
       expect(crs).toHaveLength(1);
@@ -301,33 +289,33 @@ describe('User Model', () => {
     });
 
     test('should find users by status', async () => {
-      const approvedUsers = await User.find({ status: 'approved' });
-      const pendingUsers = await User.find({ status: 'pending' });
+  const approvedUsers = await User.find({ isApproved: true });
+  const pendingUsers = await User.find({ isApproved: false });
 
       expect(approvedUsers).toHaveLength(3);
       expect(pendingUsers).toHaveLength(1);
     });
 
     test('should find users by department', async () => {
-      const csUsers = await User.find({ department: 'Computer Science' });
-      const adminUsers = await User.find({ department: 'Administration' });
+  const csUsers = await User.find({ department: 'Computer Science' });
+  const adminUsers = await User.find({ department: 'Administration' });
 
-      expect(csUsers).toHaveLength(3);
-      expect(adminUsers).toHaveLength(1);
+    expect(csUsers).toHaveLength(3);
+    expect(adminUsers).toHaveLength(1);
     });
 
     test('should find users by year', async () => {
-      const year2Users = await User.find({ year: 2 });
-      const year3Users = await User.find({ year: 3 });
+  const year2Users = await User.find({ year: '2nd' });
+  const year3Users = await User.find({ year: '3rd' });
 
       expect(year2Users).toHaveLength(2);
       expect(year3Users).toHaveLength(1);
     });
 
     test('should count users by role', async () => {
-      const studentCount = await User.countDocuments({ role: 'student' });
-      const crCount = await User.countDocuments({ role: 'class_representative' });
-      const adminCount = await User.countDocuments({ role: 'admin' });
+  const studentCount = await User.countDocuments({ role: 'student' });
+  const crCount = await User.countDocuments({ role: 'class-representative' });
+  const adminCount = await User.countDocuments({ role: 'admin' });
 
       expect(studentCount).toBe(2);
       expect(crCount).toBe(1);

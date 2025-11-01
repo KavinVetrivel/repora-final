@@ -20,13 +20,15 @@ const createTestApp = () => {
 const createTestUserAndToken = async (role = 'student') => {
   const user = new User({
     name: 'Test User',
-    email: 'test@example.com',
-    password: 'hashedpassword',
+    email: 'test@psgtech.ac.in',
+    password: 'password123',
     rollNumber: 'CS001',
     department: 'Computer Science',
-    year: 2,
+    year: '2nd',
     role: role,
-    status: 'approved'
+    className: role === 'admin' ? undefined : 'G1',
+    isApproved: true,
+    isActive: true
   });
   
   await user.save();
@@ -53,12 +55,11 @@ describe('Bookings API', () => {
       const { user, token } = await createTestUserAndToken();
       
       const bookingData = {
-        roomCode: 'CS101',
-        purpose: 'Study Group Meeting',
-        date: new Date('2024-12-01'),
+        room: 'CS101',
+        purpose: 'Study Group Meeting for exams',
+        date: new Date('2099-12-01'),
         startTime: '10:00',
-        endTime: '12:00',
-        attendees: 15
+        endTime: '12:00'
       };
 
       const response = await request(app)
@@ -67,21 +68,21 @@ describe('Bookings API', () => {
         .send(bookingData);
 
       expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty('_id');
-      expect(response.body.roomCode).toBe(bookingData.roomCode);
-      expect(response.body.purpose).toBe(bookingData.purpose);
-      expect(response.body.userId).toBe(user._id.toString());
-      expect(response.body.status).toBe('pending');
+      expect(response.body.status).toBe('success');
+      expect(response.body.data.booking).toBeDefined();
+      expect(response.body.data.booking.room).toBe('CS101');
+      expect(response.body.data.booking.purpose).toContain('Study Group');
+      expect(response.body.data.booking.studentId).toBe(user._id.toString());
+      expect(response.body.data.booking.status).toBe('pending');
     });
 
     test('should return 401 without authentication token', async () => {
       const bookingData = {
-        roomCode: 'CS101',
+        room: 'CS101',
         purpose: 'Study Group Meeting',
-        date: new Date('2024-12-01'),
+        date: new Date('2099-12-01'),
         startTime: '10:00',
-        endTime: '12:00',
-        attendees: 15
+        endTime: '12:00'
       };
 
       const response = await request(app)
@@ -95,9 +96,9 @@ describe('Bookings API', () => {
       const { token } = await createTestUserAndToken();
       
       const incompleteData = {
-        roomCode: 'CS101',
+        room: 'CS101',
         purpose: 'Study Group Meeting'
-        // Missing required fields: date, startTime, endTime, attendees
+        // Missing required fields: date, startTime, endTime
       };
 
       const response = await request(app)
@@ -112,12 +113,11 @@ describe('Bookings API', () => {
       const { token } = await createTestUserAndToken();
       
       const bookingData = {
-        roomCode: 'CS101',
+        room: 'CS101',
         purpose: 'Study Group Meeting',
-        date: new Date('2020-01-01'), // Past date
+        date: new Date('2000-01-01'), // Past date
         startTime: '10:00',
-        endTime: '12:00',
-        attendees: 15
+        endTime: '12:00'
       };
 
       const response = await request(app)
@@ -126,19 +126,18 @@ describe('Bookings API', () => {
         .send(bookingData);
 
       expect(response.status).toBe(400);
-      expect(response.body.message).toContain('past');
+  expect(response.body.message).toContain('past');
     });
 
     test('should return 400 for invalid time range', async () => {
       const { token } = await createTestUserAndToken();
       
       const bookingData = {
-        roomCode: 'CS101',
+        room: 'CS101',
         purpose: 'Study Group Meeting',
-        date: new Date('2024-12-01'),
+        date: new Date('2099-12-01'),
         startTime: '14:00',
-        endTime: '12:00', // End time before start time
-        attendees: 15
+        endTime: '12:00' // End time before start time
       };
 
       const response = await request(app)
@@ -153,28 +152,30 @@ describe('Bookings API', () => {
 
   describe('GET /api/bookings/my-bookings', () => {
     test('should return user bookings', async () => {
-      const { user, token } = await createTestUserAndToken();
+  const { user, token } = await createTestUserAndToken();
       
       // Create test bookings
       const booking1 = new Booking({
-        userId: user._id,
-        roomCode: 'CS101',
+        studentId: user._id,
+        studentRollNumber: 'CS001',
+        studentName: user.name,
+        room: 'CS101',
         purpose: 'Study Group 1',
-        date: new Date('2024-12-01'),
+        date: new Date('2099-12-01'),
         startTime: '10:00',
         endTime: '12:00',
-        attendees: 15,
         status: 'approved'
       });
       
       const booking2 = new Booking({
-        userId: user._id,
-        roomCode: 'CS102',
+        studentId: user._id,
+        studentRollNumber: 'CS001',
+        studentName: user.name,
+        room: 'CS102',
         purpose: 'Study Group 2',
-        date: new Date('2024-12-02'),
+        date: new Date('2099-12-02'),
         startTime: '14:00',
         endTime: '16:00',
-        attendees: 10,
         status: 'pending'
       });
       
@@ -186,9 +187,10 @@ describe('Bookings API', () => {
         .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.bookings).toHaveLength(2);
-      expect(response.body.bookings[0].userId).toBe(user._id.toString());
-      expect(response.body.bookings[1].userId).toBe(user._id.toString());
+  expect(response.body.status).toBe('success');
+  expect(response.body.data.bookings.length).toBe(2);
+  expect(response.body.data.bookings[0].studentId.toString()).toBe(user._id.toString());
+  expect(response.body.data.bookings[1].studentId.toString()).toBe(user._id.toString());
     });
 
     test('should return empty array for user with no bookings', async () => {
@@ -199,31 +201,34 @@ describe('Bookings API', () => {
         .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.bookings).toHaveLength(0);
+  expect(response.body.status).toBe('success');
+  expect(response.body.data.bookings).toHaveLength(0);
     });
 
     test('should filter bookings by status', async () => {
       const { user, token } = await createTestUserAndToken();
       
       const approvedBooking = new Booking({
-        userId: user._id,
-        roomCode: 'CS101',
+        studentId: user._id,
+        studentRollNumber: 'CS001',
+        studentName: user.name,
+        room: 'CS101',
         purpose: 'Approved Meeting',
-        date: new Date('2024-12-01'),
+        date: new Date('2099-12-01'),
         startTime: '10:00',
         endTime: '12:00',
-        attendees: 15,
         status: 'approved'
       });
       
       const pendingBooking = new Booking({
-        userId: user._id,
-        roomCode: 'CS102',
+        studentId: user._id,
+        studentRollNumber: 'CS001',
+        studentName: user.name,
+        room: 'CS102',
         purpose: 'Pending Meeting',
-        date: new Date('2024-12-02'),
+        date: new Date('2099-12-02'),
         startTime: '14:00',
         endTime: '16:00',
-        attendees: 10,
         status: 'pending'
       });
       
@@ -235,8 +240,9 @@ describe('Bookings API', () => {
         .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.bookings).toHaveLength(1);
-      expect(response.body.bookings[0].status).toBe('approved');
+  expect(response.body.status).toBe('success');
+  expect(response.body.data.bookings).toHaveLength(1);
+  expect(response.body.data.bookings[0].status).toBe('approved');
     });
   });
 
@@ -247,15 +253,16 @@ describe('Bookings API', () => {
       const response = await request(app)
         .get('/api/bookings/check-availability')
         .query({
-          roomCode: 'CS101',
-          date: '2024-12-01',
+          room: 'CS101',
+          date: '2099-12-01',
           startTime: '10:00',
           endTime: '12:00'
         })
         .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.available).toBe(true);
+      expect(response.body.status).toBe('success');
+      expect(response.body.data.available).toBe(true);
     });
 
     test('should return false for conflicting time slot', async () => {
@@ -263,13 +270,14 @@ describe('Bookings API', () => {
       
       // Create a conflicting booking
       const existingBooking = new Booking({
-        userId: user._id,
-        roomCode: 'CS101',
+        studentId: user._id,
+        studentRollNumber: 'CS001',
+        studentName: user.name,
+        room: 'CS101',
         purpose: 'Existing Meeting',
-        date: new Date('2024-12-01'),
+        date: new Date('2099-12-01'),
         startTime: '10:00',
         endTime: '12:00',
-        attendees: 15,
         status: 'approved'
       });
       
@@ -278,15 +286,16 @@ describe('Bookings API', () => {
       const response = await request(app)
         .get('/api/bookings/check-availability')
         .query({
-          roomCode: 'CS101',
-          date: '2024-12-01',
+          room: 'CS101',
+          date: '2099-12-01',
           startTime: '11:00',
           endTime: '13:00'
         })
         .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.available).toBe(false);
+      expect(response.body.status).toBe('success');
+      expect(response.body.data.available).toBe(false);
     });
   });
 
@@ -295,13 +304,14 @@ describe('Bookings API', () => {
       const { user, token } = await createTestUserAndToken('admin');
       
       const booking = new Booking({
-        userId: user._id,
-        roomCode: 'CS101',
+        studentId: user._id,
+        studentRollNumber: 'CS001',
+        studentName: user.name,
+        room: 'CS101',
         purpose: 'Test Meeting',
-        date: new Date('2024-12-01'),
+        date: new Date('2099-12-01'),
         startTime: '10:00',
         endTime: '12:00',
-        attendees: 15,
         status: 'pending'
       });
       
@@ -310,24 +320,26 @@ describe('Bookings API', () => {
       const response = await request(app)
         .patch(`/api/bookings/${booking._id}/approve`)
         .set('Authorization', `Bearer ${token}`)
-        .send({ approverComments: 'Looks good!' });
+        .send({ adminNotes: 'Looks good!' });
 
       expect(response.status).toBe(200);
-      expect(response.body.status).toBe('approved');
-      expect(response.body.approverComments).toBe('Looks good!');
+      expect(response.body.status).toBe('success');
+      expect(response.body.data.booking.status).toBe('approved');
+      expect(response.body.data.booking.adminNotes).toBe('Looks good!');
     });
 
     test('should return 403 for non-admin user', async () => {
       const { user, token } = await createTestUserAndToken('student');
       
       const booking = new Booking({
-        userId: user._id,
-        roomCode: 'CS101',
+        studentId: user._id,
+        studentRollNumber: 'CS001',
+        studentName: user.name,
+        room: 'CS101',
         purpose: 'Test Meeting',
-        date: new Date('2024-12-01'),
+        date: new Date('2099-12-01'),
         startTime: '10:00',
         endTime: '12:00',
-        attendees: 15,
         status: 'pending'
       });
       

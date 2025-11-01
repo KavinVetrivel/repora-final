@@ -229,6 +229,17 @@ router.post('/', authenticateToken, requireStudentOrClassRep, [
 
     const { room, date, startTime, endTime, purpose } = req.body;
 
+    // Prevent past date bookings explicitly (clear message for tests/users)
+    const bookingDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (bookingDate < today) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Booking date cannot be in the past'
+      });
+    }
+
     // Check if end time is after start time
     if (endTime <= startTime) {
       return res.status(400).json({
@@ -510,4 +521,6 @@ router.get('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Export both default router and a named export for tests
 module.exports = router;
+module.exports.bookingAPI = router;

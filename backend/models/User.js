@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true,
     required: true,
-    enum: ['Computer Science', 'Mechanical Engineering', 'Information Technology', 'Civil Engineering'],
+    enum: ['Computer Science', 'Mechanical Engineering', 'Information Technology', 'Civil Engineering', 'Administration'],
     default: 'Computer Science'
   },
   year: {
@@ -92,7 +92,8 @@ const userSchema = new mongoose.Schema({
   isApproved: {
     type: Boolean,
     default: function() {
-      return this.role === 'student';
+      // Only class representatives require approval; students and admins are approved by default
+      return this.role !== 'class-representative';
     }
   },
   approvedBy: {
