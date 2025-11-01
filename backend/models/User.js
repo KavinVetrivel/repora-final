@@ -44,12 +44,41 @@ const userSchema = new mongoose.Schema({
   department: {
     type: String,
     trim: true,
+    required: true,
+    enum: ['Computer Science', 'Mechanical Engineering', 'Information Technology', 'Civil Engineering'],
     default: 'Computer Science'
   },
   year: {
     type: String,
     enum: ['1st', '2nd', '3rd', '4th', '5th'],
     default: '1st'
+  },
+  className: {
+    type: String,
+    trim: true,
+    required: function() {
+      return this.role !== 'admin';
+    },
+    validate: {
+      validator: function(value) {
+        if (this.role === 'admin') return true;
+        
+        // For Computer Science: G1, G2, AIML allowed
+        if (this.department === 'Computer Science') {
+          return ['G1', 'G2', 'AIML'].includes(value);
+        }
+        // For other departments: only G1, G2 allowed
+        else {
+          return ['G1', 'G2'].includes(value);
+        }
+      },
+      message: function(props) {
+        if (props.instance.department === 'Computer Science') {
+          return 'Class must be G1, G2, or AIML for Computer Science';
+        }
+        return 'Class must be G1 or G2 for this department';
+      }
+    }
   },
   phone: {
     type: String,

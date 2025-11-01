@@ -20,6 +20,7 @@ const Register = () => {
   } = useForm();
 
   const password = watch('password');
+  const selectedDepartment = watch('department');
 
   const onSubmit = async (data) => {
     // Remove fields that are not expected by the backend
@@ -320,11 +321,9 @@ const Register = () => {
                   >
                     <option value="">Select department</option>
                     <option value="Computer Science">Computer Science</option>
-                    <option value="Electrical Engineering">Electrical Engineering</option>
                     <option value="Mechanical Engineering">Mechanical Engineering</option>
-                    <option value="Civil Engineering">Civil Engineering</option>
-                    <option value="Electronics Engineering">Electronics Engineering</option>
                     <option value="Information Technology">Information Technology</option>
+                    <option value="Civil Engineering">Civil Engineering</option>
                   </select>
                 </div>
                 {errors.department && (
@@ -374,38 +373,95 @@ const Register = () => {
               </div>
             </div>
 
-            {/* Role Field */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
-              }`}>
-                Role
-              </label>
-              <select
-                {...register('role', {
-                  required: 'Role is required'
-                })}
-                className={`w-full px-4 py-3 rounded-xl border transition-all duration-200 ${
-                  errors.role
-                    ? theme === 'dark'
-                      ? 'border-red-500 bg-red-500/5 text-red-400'
-                      : 'border-red-300 bg-red-50 text-red-700'
-                    : theme === 'dark'
-                      ? 'border-gray-700 bg-gray-800/50 text-white focus:border-orange-400 focus:bg-gray-800'
-                      : 'border-gray-200 bg-white text-gray-900 focus:border-orange-300 focus:ring-2 focus:ring-orange-100'
-                }`}
-              >
-                <option value="">Select your role</option>
-                <option value="student">Student (View Only Access)</option>
-                <option value="class-representative">Class Representative (Full Access - Requires Approval)</option>
-              </select>
-              {errors.role && (
-                <p className={`mt-2 text-sm ${
-                  theme === 'dark' ? 'text-red-400' : 'text-red-600'
+            {/* Third Row - Role and Class */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Role Field */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
                 }`}>
-                  {errors.role.message}
-                </p>
-              )}
+                  Role
+                </label>
+                <select
+                  {...register('role', {
+                    required: 'Role is required'
+                  })}
+                  className={`w-full px-4 py-3 rounded-xl border transition-all duration-200 ${
+                    errors.role
+                      ? theme === 'dark'
+                        ? 'border-red-500 bg-red-500/5 text-red-400'
+                        : 'border-red-300 bg-red-50 text-red-700'
+                      : theme === 'dark'
+                        ? 'border-gray-700 bg-gray-800/50 text-white focus:border-orange-400 focus:bg-gray-800'
+                        : 'border-gray-200 bg-white text-gray-900 focus:border-orange-300 focus:ring-2 focus:ring-orange-100'
+                  }`}
+                >
+                  <option value="">Select your role</option>
+                  <option value="student">Student (View Only Access)</option>
+                  <option value="class-representative">Class Representative (Full Access - Requires Approval)</option>
+                </select>
+                {errors.role && (
+                  <p className={`mt-2 text-sm ${
+                    theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                  }`}>
+                    {errors.role.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Class Field */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
+                }`}>
+                  Class
+                </label>
+                <select
+                  {...register('className', {
+                    required: 'Class is required'
+                  })}
+                  disabled={!selectedDepartment}
+                  className={`w-full px-4 py-3 rounded-xl border transition-all duration-200 ${
+                    !selectedDepartment 
+                      ? 'opacity-50 cursor-not-allowed'
+                      : ''
+                  } ${
+                    errors.className
+                      ? theme === 'dark'
+                        ? 'border-red-500 bg-red-500/5 text-red-400'
+                        : 'border-red-300 bg-red-50 text-red-700'
+                      : theme === 'dark'
+                        ? 'border-gray-700 bg-gray-800/50 text-white focus:border-orange-400 focus:bg-gray-800'
+                        : 'border-gray-200 bg-white text-gray-900 focus:border-orange-300 focus:ring-2 focus:ring-orange-100'
+                  }`}
+                >
+                  <option value="">
+                    {!selectedDepartment ? 'Select department first' : 'Select your class'}
+                  </option>
+                  <option value="G1">G1</option>
+                  <option value="G2">G2</option>
+                  {selectedDepartment === 'Computer Science' && (
+                    <option value="AIML">AIML</option>
+                  )}
+                </select>
+                {errors.className && (
+                  <p className={`mt-2 text-sm ${
+                    theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                  }`}>
+                    {errors.className.message}
+                  </p>
+                )}
+                {selectedDepartment && (
+                  <p className={`mt-1 text-xs ${
+                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
+                    {selectedDepartment === 'Computer Science' 
+                      ? 'Available classes: G1, G2, AIML'
+                      : 'Available classes: G1, G2'
+                    }
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Phone Field */}
@@ -450,7 +506,7 @@ const Register = () => {
               )}
             </div>
 
-            {/* Third Row - Password Fields */}
+            {/* Fourth Row - Password Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Password Field */}
               <div>

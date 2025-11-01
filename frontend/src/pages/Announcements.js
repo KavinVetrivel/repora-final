@@ -27,8 +27,24 @@ const Announcements = () => {
     content: '',
     category: 'general',
     priority: 'medium',
+    targetAudience: 'all',
+    targetClasses: [],
     isPinned: false
   });
+
+  const departments = [
+    'Computer Science',
+    'Mechanical Engineering', 
+    'Information Technology',
+    'Civil Engineering'
+  ];
+
+  const getClassesForDepartment = (department) => {
+    if (department === 'Computer Science') {
+      return ['G1', 'G2', 'AIML'];
+    }
+    return ['G1', 'G2'];
+  };
 
   const categoryColors = {
     general: theme === 'dark' 
@@ -81,8 +97,8 @@ const Announcements = () => {
         : await announcementAPI.getAll(params);
         
       setAnnouncements(response.data.data.announcements || []);
-    } catch (error) {
-      console.error('Error fetching announcements:', error);
+    } catch (err) {
+      console.error('Error fetching announcements:', err);
       error('Failed to fetch announcements', { title: 'Loading Error' });
       setAnnouncements([]);
     } finally {
@@ -98,9 +114,15 @@ const Announcements = () => {
       return;
     }
 
+    if (newAnnouncement.targetAudience === 'specific-classes' && newAnnouncement.targetClasses.length === 0) {
+      error('Please select at least one class when targeting specific classes', { title: 'Validation Error' });
+      return;
+    }
+
     setProcessing(prev => ({ ...prev, create: true }));
     
     try {
+      console.log('📝 Sending announcement data:', JSON.stringify(newAnnouncement, null, 2));
       await announcementAPI.create(newAnnouncement);
       setShowCreateForm(false);
       setNewAnnouncement({
@@ -108,6 +130,8 @@ const Announcements = () => {
         content: '',
         category: 'general',
         priority: 'medium',
+        targetAudience: 'all',
+        targetClasses: [],
         isPinned: false
       });
       await fetchAnnouncements();
@@ -115,8 +139,8 @@ const Announcements = () => {
         title: 'Success', 
         duration: 4000 
       });
-    } catch (error) {
-      const message = error.response?.data?.message || 'Failed to create announcement';
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to create announcement';
       error(message, { title: 'Creation Failed' });
     } finally {
       setProcessing(prev => ({ ...prev, create: false }));
@@ -131,8 +155,8 @@ const Announcements = () => {
     try {
       await announcementAPI.togglePin(announcementId);
       await fetchAnnouncements();
-    } catch (error) {
-      const message = error.response?.data?.message || 'Failed to toggle pin status';
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to toggle pin status';
       error(message, { title: 'Update Failed' });
     } finally {
       setProcessing(prev => ({ ...prev, [announcementId]: false }));
@@ -162,8 +186,8 @@ const Announcements = () => {
         title: 'Deleted',
         duration: 3000 
       });
-    } catch (error) {
-      const message = error.response?.data?.message || 'Failed to delete announcement';
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to delete announcement';
       error(message, { title: 'Deletion Failed' });
     } finally {
       setProcessing(prev => ({ ...prev, [announcementId]: false }));
@@ -348,24 +372,121 @@ const Announcements = () => {
                   <label className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>
-                    Options
+                    Target Audience
                   </label>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      className={`rounded border-2 ${
-                        theme === 'dark'
-                          ? 'border-gray-600 bg-gray-700 text-orange-500 focus:ring-orange-500/20'
-                          : 'border-gray-300 bg-white text-orange-500 focus:ring-orange-500/20'
-                      } focus:ring-2`}
-                      checked={newAnnouncement.isPinned}
-                      onChange={(e) => setNewAnnouncement(prev => ({ ...prev, isPinned: e.target.checked }))}
-                    />
-                    <span className={`text-sm ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                    }`}>Pin announcement</span>
-                  </label>
+                  <select
+                    className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                      theme === 'dark'
+                        ? 'bg-gray-700 border-gray-600 text-white focus:border-orange-500'
+                        : 'bg-white border-gray-300 text-gray-900 focus:border-orange-500'
+                    } focus:ring-2 focus:ring-orange-500/20 focus:outline-none`}
+                    value={newAnnouncement.targetAudience}
+                    onChange={(e) => setNewAnnouncement(prev => ({ 
+                      ...prev, 
+                      targetAudience: e.target.value,
+                      targetClasses: e.target.value === 'specific-classes' ? prev.targetClasses : []
+                    }))}
+                  >
+                    <option value="all">All Students</option>
+                    <option value="students">General Students</option>
+                    <option value="specific-classes">Specific Classes</option>
+                  </select>
                 </div>
+              </div>
+
+              {/* Class Selection for Specific Classes */}
+              {newAnnouncement.targetAudience === 'specific-classes' && (
+                <div>
+                  <label className={`block text-sm font-medium mb-3 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Select Target Classes *
+                  </label>
+                  <div className="space-y-4">
+                    {['1st', '2nd', '3rd', '4th', '5th'].map(year => (
+                      <div key={year}>
+                        <h4 className={`font-semibold mb-3 text-lg ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}>{year} Year</h4>
+                        <div className="space-y-3">
+                          {departments.map(department => (
+                            <div key={`${year}-${department}`} className={`p-4 rounded-lg border ${
+                              theme === 'dark'
+                                ? 'border-gray-600 bg-gray-700/50'
+                                : 'border-gray-200 bg-gray-50'
+                            }`}>
+                              <h5 className={`font-medium mb-2 ${
+                                theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                              }`}>{department}</h5>
+                              <div className="grid grid-cols-3 gap-3">
+                                {getClassesForDepartment(department).map(className => {
+                                  const classKey = `${year}-${department}-${className}`;
+                                  const isSelected = newAnnouncement.targetClasses.some(
+                                    tc => tc.year === year && tc.department === department && tc.className === className
+                                  );
+                                  return (
+                                    <label key={classKey} className="flex items-center space-x-2 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        className={`rounded border-2 ${
+                                          theme === 'dark'
+                                            ? 'border-gray-600 bg-gray-700 text-orange-500 focus:ring-orange-500/20'
+                                            : 'border-gray-300 bg-white text-orange-500 focus:ring-orange-500/20'
+                                        } focus:ring-2`}
+                                        checked={isSelected}
+                                        onChange={(e) => {
+                                          if (e.target.checked) {
+                                            setNewAnnouncement(prev => ({
+                                              ...prev,
+                                              targetClasses: [...prev.targetClasses, { year, department, className }]
+                                            }));
+                                          } else {
+                                            setNewAnnouncement(prev => ({
+                                              ...prev,
+                                              targetClasses: prev.targetClasses.filter(
+                                                tc => !(tc.year === year && tc.department === department && tc.className === className)
+                                              )
+                                            }));
+                                          }
+                                        }}
+                                      />
+                                      <span className={`text-sm font-medium ${
+                                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                                      }`}>{className}</span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Options
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    className={`rounded border-2 ${
+                      theme === 'dark'
+                        ? 'border-gray-600 bg-gray-700 text-orange-500 focus:ring-orange-500/20'
+                        : 'border-gray-300 bg-white text-orange-500 focus:ring-orange-500/20'
+                    } focus:ring-2`}
+                    checked={newAnnouncement.isPinned}
+                    onChange={(e) => setNewAnnouncement(prev => ({ ...prev, isPinned: e.target.checked }))}
+                  />
+                  <span className={`text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>Pin announcement</span>
+                </label>
               </div>
 
               <div className="flex items-center space-x-4 pt-4">

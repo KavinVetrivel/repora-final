@@ -27,22 +27,12 @@ const announcementSchema = new mongoose.Schema({
   },
   targetAudience: {
     type: String,
-    enum: ['all', 'students', 'specific-year', 'specific-department'],
+    enum: ['all', 'students', 'specific-classes'],
     default: 'all'
   },
-  targetYear: {
-    type: String,
-    enum: ['1st', '2nd', '3rd', '4th', '5th'],
-    required: function() {
-      return this.targetAudience === 'specific-year';
-    }
-  },
-  targetDepartment: {
-    type: String,
-    trim: true,
-    required: function() {
-      return this.targetAudience === 'specific-department';
-    }
+  targetClasses: {
+    type: [mongoose.Schema.Types.Mixed],
+    default: []
   },
   isPinned: {
     type: Boolean,
@@ -113,7 +103,7 @@ const announcementSchema = new mongoose.Schema({
 // Indexes for better performance
 announcementSchema.index({ publishDate: -1, isPinned: -1 });
 announcementSchema.index({ category: 1, priority: 1 });
-announcementSchema.index({ targetAudience: 1, targetYear: 1, targetDepartment: 1 });
+announcementSchema.index({ targetAudience: 1, 'targetClasses.year': 1, 'targetClasses.department': 1, 'targetClasses.className': 1 });
 announcementSchema.index({ isActive: 1, publishDate: -1 });
 
 // Virtual for time since publish

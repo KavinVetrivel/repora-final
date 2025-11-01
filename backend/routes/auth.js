@@ -32,9 +32,8 @@ router.post('/register', [
     .withMessage('Password must be at least 6 characters long'),
   body('department')
     .optional()
-    .trim()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Department must be between 2 and 50 characters'),
+    .isIn(['Computer Science', 'Mechanical Engineering', 'Information Technology', 'Civil Engineering'])
+    .withMessage('Invalid department selected'),
   body('year')
     .optional()
     .isIn(['1st', '2nd', '3rd', '4th', '5th'])
@@ -46,7 +45,20 @@ router.post('/register', [
   body('role')
     .optional()
     .isIn(['student', 'class-representative'])
-    .withMessage('Role must be either student or class-representative')
+    .withMessage('Role must be either student or class-representative'),
+  body('className')
+    .if(body('role').not().equals('admin'))
+    .notEmpty()
+    .withMessage('Class name is required')
+    .custom((value, { req }) => {
+      const department = req.body.department;
+      if (department === 'Computer Science') {
+        return ['G1', 'G2', 'AIML'].includes(value);
+      } else {
+        return ['G1', 'G2'].includes(value);
+      }
+    })
+    .withMessage('Invalid class name for the selected department')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -59,7 +71,7 @@ router.post('/register', [
       });
     }
 
-    const { rollNumber, name, email, password, department, year, phone, role } = req.body;
+    const { rollNumber, name, email, password, department, year, phone, role, className } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({
@@ -85,10 +97,11 @@ router.post('/register', [
       name,
       email,
       password,
-      department: department || 'Computer Science',
+      department,
       year: year || '1st',
       phone,
       role: userRole,
+      className: userRole !== 'admin' ? className : undefined,
       isApproved: !needsApproval, // Auto-approve regular students
       isActive: true
     });

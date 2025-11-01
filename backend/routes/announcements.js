@@ -29,17 +29,24 @@ router.post('/', authenticateToken, requireAdmin, upload.array('attachments', 5)
     .withMessage('Invalid priority'),
   body('targetAudience')
     .optional()
-    .isIn(['all', 'students', 'specific-year', 'specific-department'])
+    .isIn(['all', 'students', 'specific-classes'])
     .withMessage('Invalid target audience'),
-  body('targetYear')
+  body('targetClasses')
+    .optional()
+    .isArray()
+    .withMessage('Target classes must be an array'),
+  body('targetClasses.*.year')
     .optional()
     .isIn(['1st', '2nd', '3rd', '4th', '5th'])
     .withMessage('Invalid target year'),
-  body('targetDepartment')
+  body('targetClasses.*.department')
     .optional()
-    .trim()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Target department must be between 2 and 50 characters'),
+    .isIn(['Computer Science', 'Mechanical Engineering', 'Information Technology', 'Civil Engineering'])
+    .withMessage('Invalid department'),
+  body('targetClasses.*.className')
+    .optional()
+    .isString()
+    .withMessage('Invalid class name'),
   body('isPinned')
     .optional()
     .isBoolean()
@@ -50,9 +57,13 @@ router.post('/', authenticateToken, requireAdmin, upload.array('attachments', 5)
     .withMessage('Please provide a valid expiry date')
 ], async (req, res) => {
   try {
+    // Debug: Log the incoming request body
+    console.log('📝 Announcement creation request:', JSON.stringify(req.body, null, 2));
+    
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Validation errors:', errors.array());
       return res.status(400).json({
         status: 'error',
         message: 'Validation failed',
@@ -66,26 +77,14 @@ router.post('/', authenticateToken, requireAdmin, upload.array('attachments', 5)
       category = 'general', 
       priority = 'medium',
       targetAudience = 'all',
-      targetYear,
-      targetDepartment,
+      targetClasses,
       isPinned = false,
       expiryDate
     } = req.body;
 
-    // Validate target audience requirements
-    if (targetAudience === 'specific-year' && !targetYear) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Target year is required when target audience is specific-year'
-      });
-    }
-
-    if (targetAudience === 'specific-department' && !targetDepartment) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Target department is required when target audience is specific-department'
-      });
-    }
+    // Basic validation only for now
+    console.log('📋 Target audience:', targetAudience);
+    console.log('📋 Target classes:', targetClasses);
 
     // Process uploaded files
     const attachments = [];
@@ -102,21 +101,25 @@ router.post('/', authenticateToken, requireAdmin, upload.array('attachments', 5)
     }
 
     // Create new announcement
-    const announcement = new Announcement({
+    const announcementData = {
       title,
       content,
       category,
       priority,
       targetAudience,
-      targetYear,
-      targetDepartment,
+      targetClasses: targetAudience === 'specific-classes' ? targetClasses : [],
       isPinned,
       expiryDate: expiryDate ? new Date(expiryDate) : null,
       createdBy: req.user._id,
       attachments
-    });
+    };
+    
+    console.log('📝 Creating announcement with data:', JSON.stringify(announcementData, null, 2));
+    
+    const announcement = new Announcement(announcementData);
 
     await announcement.save();
+    console.log('✅ Announcement saved successfully');
 
     await announcement.populate('createdBy', 'name email');
 
@@ -169,14 +172,22 @@ router.get('/', optionalAuth, async (req, res) => {
 
     // Filter by target audience if user is authenticated
     if (req.user) {
-      if (req.user.role === 'student') {
-        // Students see announcements targeted to them
+      if (req.user.role === 'student' || req.user.role === 'class-representative') {
+        // Students and class representatives see announcements targeted to them
         const studentQuery = {
           $or: [
             { targetAudience: 'all' },
             { targetAudience: 'students' },
-            { targetAudience: 'specific-year', targetYear: req.user.year },
-            { targetAudience: 'specific-department', targetDepartment: req.user.department }
+            { 
+              targetAudience: 'specific-classes',
+              targetClasses: {
+                $elemMatch: {
+                  year: req.user.year,
+                  department: req.user.department,
+                  className: req.user.className
+                }
+              }
+            }
           ]
         };
         Object.assign(query, studentQuery);
@@ -355,7 +366,7 @@ router.put('/:id', authenticateToken, requireAdmin, upload.array('attachments', 
     .withMessage('Invalid priority'),
   body('targetAudience')
     .optional()
-    .isIn(['all', 'students', 'specific-year', 'specific-department'])
+    .isIn(['all', 'students', 'specific-classes'])
     .withMessage('Invalid target audience'),
   body('isPinned')
     .optional()

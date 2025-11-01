@@ -33,10 +33,11 @@ const seedData = async () => {
       email: 'admin@psgtech.ac.in',
       password: 'admin123',
       role: 'admin',
-      department: 'Administration',
+      department: 'Computer Science', // Admin can be from any department, using CS as default
       phone: '9876543210',
       isApproved: true, // Admin is pre-approved
       approvedAt: new Date()
+      // Note: className is not required for admin role
     });
 
     await adminUser.save();
@@ -51,6 +52,7 @@ const seedData = async () => {
         password: 'student123',
         department: 'Computer Science',
         year: '2nd',
+        className: 'G1',
         phone: '9876543211'
       },
       {
@@ -60,15 +62,17 @@ const seedData = async () => {
         password: 'student123',
         department: 'Computer Science',
         year: '3rd',
+        className: 'AIML',
         phone: '9876543212'
       },
       {
-        rollNumber: 'EE2023001',
+        rollNumber: 'IT2023001',
         name: 'Charlie Brown',
         email: 'charlie.brown@psgtech.ac.in',
         password: 'student123',
-        department: 'Electrical Engineering',
+        department: 'Information Technology',
         year: '1st',
+        className: 'G2',
         phone: '9876543213'
       },
       {
@@ -78,6 +82,7 @@ const seedData = async () => {
         password: 'student123',
         department: 'Mechanical Engineering',
         year: '4th',
+        className: 'G1',
         phone: '9876543214'
       },
       {
@@ -87,7 +92,18 @@ const seedData = async () => {
         password: 'student123',
         department: 'Computer Science',
         year: '2nd',
+        className: 'G2',
         phone: '9876543215'
+      },
+      {
+        rollNumber: 'CE2023001',
+        name: 'Frank Castle',
+        email: 'frank.castle@psgtech.ac.in',
+        password: 'student123',
+        department: 'Civil Engineering',
+        year: '3rd',
+        className: 'G1',
+        phone: '9876543216'
       }
     ];
 
