@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, User, Calendar, MapPin, Search, Check, X, Clock, FileText, Eye } from 'lucide-react';
+import { AlertTriangle, User, Calendar, MapPin, Search, Check, X, Clock, Eye } from 'lucide-react';
 import { issueAPI } from '../../utils/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -322,12 +322,7 @@ const ApproveIssues = () => {
                           <span>Resolved {formatDate(issue.resolvedAt)}</span>
                         </div>
                       )}
-                      {issue.attachments?.length > 0 && (
-                        <div className="flex items-center space-x-2 text-dark-300">
-                          <FileText className="w-4 h-4" />
-                          <span>{issue.attachments.length} attachment{issue.attachments.length > 1 ? 's' : ''}</span>
-                        </div>
-                      )}
+
                     </div>
 
                     {/* Description */}

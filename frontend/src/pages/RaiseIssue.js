@@ -33,8 +33,7 @@ const initialState = {
   title: '',
   description: '',
   priority: 'medium',
-  selectedComponents: [],
-  attachments: []
+  selectedComponents: []
 };
 
 const RaiseIssue = () => {
@@ -148,10 +147,7 @@ const RaiseIssue = () => {
     });
   };
 
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    setFormData(prev => ({ ...prev, attachments: files }));
-  };
+
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -204,10 +200,7 @@ const RaiseIssue = () => {
         submitData.append(`affectedComponents[${index}][count]`, '1');
       });
 
-      // Add attachments
-      formData.attachments.forEach((file) => {
-        submitData.append('attachments', file);
-      });
+
 
       // Debug: Log FormData contents
       console.log('FormData contents:');
@@ -529,34 +522,7 @@ const RaiseIssue = () => {
                     </p>
                   </div>
 
-                  {/* File Attachments */}
-                  <div>
-                    <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`} htmlFor="attachments">
-                      Attachments (Optional)
-                    </label>
-                    <input
-                      id="attachments"
-                      name="attachments"
-                      type="file"
-                      multiple
-                      accept="image/*,.pdf,.doc,.docx,.txt"
-                      onChange={handleFileChange}
-                      className="input"
-                    />
-                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
-                      Upload images or documents related to the issue (Max 5 files, 10MB each)
-                    </p>
-                    {formData.attachments.length > 0 && (
-                      <div className="mt-2">
-                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Selected files:</p>
-                        <ul className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} ml-4 list-disc`}>
-                          {formData.attachments.map((file, index) => (
-                            <li key={index}>{file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
+
                 </div>
               </div>
 
