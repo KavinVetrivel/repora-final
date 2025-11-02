@@ -1,8 +1,17 @@
 import axios from 'axios';
 
+// Derive and normalize API base URL
+const RAW_API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Ensure base URL ends with /api to match backend route prefix
+const NORMALIZED_API_URL = (() => {
+  const trimmed = RAW_API_URL.replace(/\/$/, '');
+  if (/\/api$/i.test(trimmed)) return trimmed; // already ends with /api
+  return `${trimmed}/api`;
+})();
+
 // Create axios instance
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  baseURL: NORMALIZED_API_URL,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
@@ -80,6 +89,12 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// One-time info log in non-test environments to help diagnose env config
+if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+  // eslint-disable-next-line no-console
+  console.info('🔧 API base URL:', NORMALIZED_API_URL);
+}
 
 // API endpoints
 export const authAPI = {
