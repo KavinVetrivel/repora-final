@@ -40,26 +40,29 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration - More permissive for development
+// CORS configuration - allow local dev, production client, and Vercel previews
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
+
+    const staticAllowed = [
       process.env.CLIENT_URL || 'http://localhost:3000',
       'http://localhost:3000',
       'http://localhost:3001',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3001'
     ];
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log(`❌ CORS blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+
+    const isStaticAllowed = staticAllowed.includes(origin);
+    const isVercelPreview = /https?:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
+
+    if (isStaticAllowed || isVercelPreview) {
+      return callback(null, true);
     }
+
+    console.log(`❌ CORS blocked origin: ${origin}`);
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
