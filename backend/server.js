@@ -51,13 +51,19 @@ const corsOptions = {
       'http://localhost:3000',
       'http://localhost:3001',
       'http://127.0.0.1:3000',
-      'http://127.0.0.1:3001'
+      'http://127.0.0.1:3001',
+      // Explicit Vercel domains provided by user
+      'https://repora.vercel.app',
+      'https://repora-git-main-kavin-vetrivel-gs-projects.vercel.app',
+      'https://repora-r2qxib05e-kavin-vetrivel-gs-projects.vercel.app',
+      'https://repora-kavin-vetrivel-gs-projects.vercel.app'
     ];
 
     const isStaticAllowed = staticAllowed.includes(origin);
     const isVercelPreview = /https?:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
 
     if (isStaticAllowed || isVercelPreview) {
+      console.log(`✅ CORS allowed origin: ${origin}`);
       return callback(null, true);
     }
 
