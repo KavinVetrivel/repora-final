@@ -70,24 +70,33 @@ const Issues = () => {
   };
 
   const getStatusBadge = (status) => {
+    const isDark = theme === 'dark';
     const statusConfig = {
       open: {
-        color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+        color: isDark
+          ? 'bg-blue-900/30 text-blue-100 border-blue-600'
+          : 'bg-blue-50 text-blue-800 border-blue-300',
         icon: AlertCircle,
         text: 'Open'
       },
       'in-progress': {
-        color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+        color: isDark
+          ? 'bg-yellow-900/30 text-yellow-100 border-yellow-600'
+          : 'bg-yellow-50 text-yellow-800 border-yellow-300',
         icon: Clock,
         text: 'In Progress'
       },
       resolved: {
-        color: 'bg-green-500/20 text-green-400 border-green-500/30',
+        color: isDark
+          ? 'bg-green-900/30 text-green-100 border-green-600'
+          : 'bg-green-50 text-green-800 border-green-300',
         icon: CheckCircle,
         text: 'Resolved'
       },
       closed: {
-        color: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+        color: isDark
+          ? 'bg-gray-700/40 text-gray-200 border-gray-600'
+          : 'bg-gray-100 text-gray-700 border-gray-300',
         icon: XCircle,
         text: 'Closed'
       }
@@ -105,21 +114,22 @@ const Issues = () => {
   };
 
   const getPriorityBadge = (priority) => {
+    const isDark = theme === 'dark';
     const priorityConfig = {
       low: {
-        color: 'bg-green-500/20 text-green-400',
+        color: isDark ? 'bg-green-900/30 text-green-100' : 'bg-green-50 text-green-800',
         text: 'Low'
       },
       medium: {
-        color: 'bg-yellow-500/20 text-yellow-400',
+        color: isDark ? 'bg-yellow-900/30 text-yellow-100' : 'bg-yellow-50 text-yellow-800',
         text: 'Medium'
       },
       high: {
-        color: 'bg-red-500/20 text-red-400',
+        color: isDark ? 'bg-red-900/30 text-red-100' : 'bg-red-50 text-red-800',
         text: 'High'
       },
       critical: {
-        color: 'bg-purple-500/20 text-purple-400',
+        color: isDark ? 'bg-purple-900/30 text-purple-100' : 'bg-purple-50 text-purple-800',
         text: 'Critical'
       }
     };
@@ -351,12 +361,14 @@ const Issues = () => {
                       </div>
 
                       {issue.status === 'resolved' && issue.resolutionNotes && (
-                        <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                          <p className="text-sm text-green-400">
+                        <div className={`mt-4 p-3 rounded-lg border ${
+                          theme === 'dark' ? 'bg-green-900/20 border-green-500/20' : 'bg-green-50 border-green-200'
+                        }`}>
+                          <p className={`text-sm ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>
                             <strong>Resolution:</strong> {issue.resolutionNotes}
                           </p>
                           {issue.resolvedBy && (
-                            <p className="text-xs text-green-400 mt-1">
+                            <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-green-400/70' : 'text-green-700/80'}`}>
                               Resolved by {issue.resolvedBy.name} on {formatDate(issue.resolvedAt)}
                             </p>
                           )}
@@ -364,8 +376,10 @@ const Issues = () => {
                       )}
 
                       {issue.status === 'closed' && issue.closureReason && (
-                        <div className="mt-4 p-3 bg-gray-500/10 border border-gray-500/20 rounded-lg">
-                          <p className="text-sm text-gray-400">
+                        <div className={`mt-4 p-3 rounded-lg border ${
+                          theme === 'dark' ? 'bg-gray-700/30 border-gray-600' : 'bg-gray-100 border-gray-300'
+                        }`}>
+                          <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                             <strong>Closed:</strong> {issue.closureReason}
                           </p>
                         </div>

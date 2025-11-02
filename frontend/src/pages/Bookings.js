@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
@@ -20,7 +20,7 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const Bookings = () => {
   const { isAdmin } = useAuth();
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -29,10 +29,15 @@ const Bookings = () => {
   });
 
   useEffect(() => {
-    fetchBookings();
-  }, [filters]);
+    // Force light theme while on bookings page and restore on unmount
+    const prevTheme = theme;
+    if (theme !== 'light') setTheme('light');
+    return () => {
+      if (prevTheme !== 'light') setTheme(prevTheme);
+    };
+  }, [theme, setTheme]);
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -57,7 +62,11 @@ const Bookings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, setLoading, setBookings]);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [filters, fetchBookings]);
 
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -385,7 +394,9 @@ const Bookings = () => {
                     </div>
 
                     {/* Student Information */}
-                    <div className="flex items-center gap-3 p-3 bg-dark-800/30 rounded-lg border border-dark-700">
+                    <div className={`flex items-center gap-3 p-3 rounded-lg border ${
+                      theme === 'dark' ? 'bg-dark-800/30 border-dark-700' : 'bg-gray-100 border-gray-200'
+                    }`}>
                       <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                         {booking.studentName?.charAt(0)?.toUpperCase()}
                       </div>
@@ -414,16 +425,18 @@ const Bookings = () => {
                     )}
                     
                     {booking.status === 'approved' && (
-                      <div className="p-4 bg-green-900/20 border border-green-500/20 rounded-lg">
+                      <div className={`p-4 rounded-lg border ${
+                        theme === 'dark' ? 'bg-green-900/20 border-green-500/20' : 'bg-green-50 border-green-200'
+                      }`}>
                         <div className="flex items-start gap-2">
-                          <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                          <CheckCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
                           <div>
-                            <p className="text-sm font-medium text-green-400 mb-1">Booking Approved</p>
+                            <p className={`text-sm font-medium mb-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-800'}`}>Booking Approved</p>
                             {booking.adminNotes && (
-                              <p className="text-sm text-green-300 mb-2">{booking.adminNotes}</p>
+                              <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>{booking.adminNotes}</p>
                             )}
                             {booking.processedBy && (
-                              <p className="text-xs text-green-400/70">
+                              <p className={`text-xs ${theme === 'dark' ? 'text-green-400/70' : 'text-green-700/80'}`}>
                                 Approved by {booking.processedBy.name} on {formatDate(booking.processedAt)}
                               </p>
                             )}
@@ -433,15 +446,17 @@ const Bookings = () => {
                     )}
 
                     {booking.status === 'pending' && (
-                      <div className="p-4 bg-yellow-900/20 border border-yellow-500/20 rounded-lg">
+                      <div className={`p-4 rounded-lg border ${
+                        theme === 'dark' ? 'bg-yellow-900/20 border-yellow-500/20' : 'bg-yellow-50 border-yellow-200'
+                      }`}>
                         <div className="flex items-start gap-2">
-                          <Clock3 className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                          <Clock3 className={`w-5 h-5 flex-shrink-0 mt-0.5 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`} />
                           <div>
-                            <p className="text-sm font-medium text-yellow-400 mb-1">Awaiting Approval</p>
-                            <p className="text-sm text-yellow-300">
+                            <p className={`text-sm font-medium mb-1 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-800'}`}>Awaiting Approval</p>
+                            <p className={`${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-700'} text-sm`}>
                               Your booking request has been submitted and is waiting for admin approval.
                             </p>
-                            <p className="text-xs text-yellow-400/70 mt-2">
+                            <p className={`text-xs mt-2 ${theme === 'dark' ? 'text-yellow-400/70' : 'text-yellow-700/80'}`}>
                               Submitted on {formatDate(booking.createdAt)}
                             </p>
                           </div>

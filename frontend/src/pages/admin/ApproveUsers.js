@@ -139,7 +139,7 @@ const ApproveUsers = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Processing</p>
-                  <p className="text-2xl font-bold text-dark-100">{processingIds.size}</p>
+                  <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{processingIds.size}</p>
                 </div>
                 <LoadingSpinner size="sm" />
               </div>
@@ -184,12 +184,12 @@ const ApproveUsers = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="w-12 h-12 bg-gradient-neon rounded-full flex items-center justify-center">
-                          <span className="text-dark-950 font-bold text-lg">
+                          <span className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'} font-bold text-lg`}>
                             {user.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-dark-100">
+                          <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                             {user.name}
                           </h3>
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
@@ -199,31 +199,31 @@ const ApproveUsers = () => {
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-dark-300">
+                      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                         <div className="flex items-center">
-                          <Mail className="w-4 h-4 mr-2 text-dark-500" />
+                          <Mail className={`w-4 h-4 mr-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                           {user.email}
                         </div>
                         <div className="flex items-center">
-                          <Hash className="w-4 h-4 mr-2 text-dark-500" />
+                          <Hash className={`w-4 h-4 mr-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                           {user.rollNumber}
                         </div>
                         <div className="flex items-center">
-                          <Building2 className="w-4 h-4 mr-2 text-dark-500" />
+                          <Building2 className={`w-4 h-4 mr-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                           {user.department}
                         </div>
                         <div className="flex items-center">
-                          <GraduationCap className="w-4 h-4 mr-2 text-dark-500" />
+                          <GraduationCap className={`w-4 h-4 mr-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                           {user.year} Year
                         </div>
                         {user.phone && (
                           <div className="flex items-center">
-                            <Phone className="w-4 h-4 mr-2 text-dark-500" />
+                            <Phone className={`w-4 h-4 mr-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                             {user.phone}
                           </div>
                         )}
                         <div className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-2 text-dark-500" />
+                          <Calendar className={`w-4 h-4 mr-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
                           Registered: {formatDate(user.createdAt)}
                         </div>
                       </div>

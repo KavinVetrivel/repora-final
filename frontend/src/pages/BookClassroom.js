@@ -43,7 +43,7 @@ const BookClassroom = () => {
   const [availabilityStatus, setAvailabilityStatus] = useState(null);
   const [existingBookings, setExistingBookings] = useState([]);
   const { user } = useAuth();
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   const generateRoomCode = (block, floor, roomNumber) => {
@@ -52,6 +52,14 @@ const BookClassroom = () => {
     return `${block}${floor}${paddedRoom}`;
   };
 
+  // Force light theme while on this page and restore on unmount
+  useEffect(() => {
+    const prevTheme = theme;
+    if (theme !== 'light') setTheme('light');
+    return () => {
+      if (prevTheme !== 'light') setTheme(prevTheme);
+    };
+  }, [theme, setTheme]);
   const handleChange = (event) => {
     const { name, value } = event.target;
     

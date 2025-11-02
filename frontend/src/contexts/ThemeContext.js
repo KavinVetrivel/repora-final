@@ -33,6 +33,7 @@ export const ThemeProvider = ({ children }) => {
   const value = {
     theme,
     toggleTheme,
+    setTheme, // expose setter so specific pages can force light theme
     isLight: theme === 'light',
     isDark: theme === 'dark'
   };
