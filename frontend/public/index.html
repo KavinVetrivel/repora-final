@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="Repora - Class Representative Management System" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <title>Repora - Class Representative Management System</title>
+    
+    <style>
+      /* Loading animation */
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #334155;
+        border-top: 4px solid #00f5ff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Hide scrollbar for webkit browsers */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: #1e293b;
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background: #475569;
+        border-radius: 4px;
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+      }
+      
+      /* Custom scrollbar for Firefox */
+      html {
+        scrollbar-width: thin;
+        scrollbar-color: #475569 #1e293b;
+      }
+    </style>
+  </head>
+  <body class="bg-dark-950 text-white">
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root">
+      <!-- Loading screen -->
+      <div class="min-h-screen bg-dark-950 flex items-center justify-center">
+        <div class="text-center">
+          <div class="loading-spinner mx-auto mb-4"></div>
+          <h2 class="text-xl font-semibold text-neon-blue">Repora</h2>
+          <p class="text-dark-400 mt-2">Loading...</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
