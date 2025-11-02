@@ -40,51 +40,71 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Helper: determine if origin is allowed
+const isOriginAllowed = (origin) => {
+  const staticAllowed = [
+    process.env.CLIENT_URL || 'http://localhost:3000',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+    // Explicit Vercel domains provided by user
+    'https://repora.vercel.app',
+    'https://repora-git-main-kavin-vetrivel-gs-projects.vercel.app',
+    'https://repora-r2qxib05e-kavin-vetrivel-gs-projects.vercel.app',
+    'https://repora-kavin-vetrivel-gs-projects.vercel.app'
+  ];
+  if (!origin) return true; // non-browser clients
+  const isStaticAllowed = staticAllowed.includes(origin);
+  const isVercelPreview = /https?:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
+  return isStaticAllowed || isVercelPreview;
+};
+
+// Early header injection so ACAO is present even if downstream CORS rejects
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && isOriginAllowed(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
+  next();
+});
+
 // CORS configuration - allow local dev, production client, and Vercel previews
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-
-    const staticAllowed = [
-      process.env.CLIENT_URL || 'http://localhost:3000',
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:3001',
-      // Explicit Vercel domains provided by user
-      'https://repora.vercel.app',
-      'https://repora-git-main-kavin-vetrivel-gs-projects.vercel.app',
-      'https://repora-r2qxib05e-kavin-vetrivel-gs-projects.vercel.app',
-      'https://repora-kavin-vetrivel-gs-projects.vercel.app'
-    ];
-
-    const isStaticAllowed = staticAllowed.includes(origin);
-    const isVercelPreview = /https?:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
-
-    if (isStaticAllowed || isVercelPreview) {
-      console.log(`✅ CORS allowed origin: ${origin}`);
+    if (isOriginAllowed(origin)) {
+      console.log(`✅ CORS allowed origin: ${origin || 'no-origin'}`);
       return callback(null, true);
     }
-
     console.log(`❌ CORS blocked origin: ${origin}`);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-requested-with', 'Accept', 'Origin', 'X-Requested-With'],
-  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  // Let cors package reflect requested headers automatically
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
 
-// Handle preflight requests
+// Handle preflight requests (explicitly echo requested headers)
 app.options('*', (req, res) => {
-  console.log(`🔍 Preflight request from origin: ${req.headers.origin}`);
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  const origin = req.headers.origin;
+  console.log(`🔍 Preflight request from origin: ${origin}`);
+  if (origin && isOriginAllowed(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-requested-with');
-  res.header('Access-Control-Allow-Credentials', 'true');
+  const reqHeaders = req.headers['access-control-request-headers'];
+  if (reqHeaders) {
+    res.header('Access-Control-Allow-Headers', reqHeaders);
+  } else {
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-requested-with, Accept, Origin');
+  }
   res.sendStatus(200);
 });
 
