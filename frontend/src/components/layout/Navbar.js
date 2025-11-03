@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Menu, 
-  Bell, 
   User, 
   LogOut, 
   ChevronDown,
@@ -18,13 +17,6 @@ const Navbar = ({ onMenuClick }) => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [notifications] = useState([
-    { id: 1, message: 'New booking approved', time: '2 min ago', read: false },
-    { id: 2, message: 'Issue status updated', time: '1 hour ago', read: true },
-    { id: 3, message: 'New announcement posted', time: '3 hours ago', read: true },
-  ]);
-
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleLogout = () => {
     logout();
@@ -77,22 +69,6 @@ const Navbar = ({ onMenuClick }) => {
 
         {/* Right side */}
         <div className="flex items-center space-x-2">
-          {/* Notifications */}
-          <div className="relative">
-            <button className={`p-2 rounded-lg transition-colors relative ${
-              theme === 'dark'
-                ? 'hover:bg-gray-700 text-gray-300'
-                : 'hover:bg-gray-100 text-gray-600'
-            }`}>
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-          </div>
-
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
